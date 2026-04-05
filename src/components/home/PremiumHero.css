@@ -1,0 +1,129 @@
+.premium-hero-perspective {
+  perspective: 1800px;
+}
+
+.premium-hero-preserve-3d {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.premium-hero-grid {
+  background-image:
+    linear-gradient(to right, rgba(0, 242, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 242, 255, 0.12) 1px, transparent 1px);
+  background-size: 54px 54px;
+}
+
+.premium-hero-scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(148, 163, 184, 0.08) 0,
+    rgba(148, 163, 184, 0.08) 1px,
+    transparent 3px,
+    transparent 6px
+  );
+  animation: premium-hero-scan 12s linear infinite;
+}
+
+.premium-hero-noise {
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(188, 19, 254, 0.18), transparent 28%),
+    radial-gradient(circle at 80% 30%, rgba(0, 242, 255, 0.14), transparent 22%),
+    radial-gradient(circle at 50% 80%, rgba(14, 165, 233, 0.1), transparent 18%);
+}
+
+.premium-hero-vignette {
+  background:
+    radial-gradient(circle at center, transparent 34%, rgba(2, 6, 23, 0.22) 74%, rgba(2, 6, 23, 0.72) 100%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.08) 0%, rgba(2, 6, 23, 0.46) 100%);
+}
+
+.premium-hero-hotspot-path {
+  stroke-dasharray: 540;
+  stroke-dashoffset: 540;
+  opacity: 0;
+  transition:
+    stroke-dashoffset 0.42s ease,
+    opacity 0.22s ease;
+}
+
+.premium-hero-hotspot-path.active {
+  stroke-dashoffset: 0;
+  opacity: 1;
+}
+
+.premium-hero-tooltip {
+  opacity: 0;
+  transform: translate3d(0, 12px, 0) scale(0.98);
+  transition:
+    opacity 0.24s ease,
+    transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.premium-hero-tooltip.active {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.premium-hero-dot {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 0 18px rgba(0, 242, 255, 0.38),
+    0 0 28px rgba(188, 19, 254, 0.18);
+}
+
+.premium-hero-dot::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 999px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.92) 0%, rgba(0, 242, 255, 0.88) 45%, rgba(188, 19, 254, 0.42) 100%);
+}
+
+.premium-hero-shard,
+.premium-hero-base {
+  will-change: transform, opacity, filter;
+}
+
+.premium-hero-chromatic {
+  filter:
+    drop-shadow(0 0 26px rgba(0, 242, 255, 0.32))
+    drop-shadow(0 0 40px rgba(188, 19, 254, 0.18));
+}
+
+
+.premium-hero-crt {
+  position: relative;
+}
+
+.premium-hero-crt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 42%);
+  mix-blend-mode: screen;
+  opacity: 0.6;
+}
+
+@keyframes premium-hero-scan {
+  0% {
+    transform: translateY(-2%);
+  }
+  50% {
+    transform: translateY(2%);
+  }
+  100% {
+    transform: translateY(-2%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .premium-hero-hotspot-path,
+  .premium-hero-tooltip,
+  .premium-hero-scanlines {
+    animation: none;
+    transition: none;
+  }
+}

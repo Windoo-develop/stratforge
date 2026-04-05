@@ -1,0 +1,60 @@
+import type { MapDefinition } from '../types/editor'
+
+export const MAPS: MapDefinition[] = [
+  {
+    id: 'sandstone',
+    name: 'Sandstone',
+    location: 'Morocco',
+    mode: 'Classic / Defuse',
+    backgroundSrc: '/assets/maps/sandstone/background.webp',
+    radarSrc: '/assets/maps/sandstone/radar.webp',
+  },
+  {
+    id: 'rust',
+    name: 'Rust',
+    location: 'Industrial yard',
+    mode: 'Classic / Defuse',
+    backgroundSrc: '/assets/maps/rust/background.webp',
+    radarSrc: '/assets/maps/rust/radar.webp',
+  },
+  {
+    id: 'breeze',
+    name: 'Breeze',
+    location: 'Resort complex',
+    mode: 'Classic / Defuse',
+    backgroundSrc: '/assets/maps/breeze/background.webp',
+    radarSrc: '/assets/maps/breeze/radar.webp',
+  },
+  {
+    id: 'dune',
+    name: 'Dune',
+    location: 'Desert outpost',
+    mode: 'Classic / Defuse',
+    backgroundSrc: '/assets/maps/dune/background.webp',
+    radarSrc: '/assets/maps/dune/radar.webp',
+  },
+  {
+    id: 'hanami',
+    name: 'Hanami',
+    location: 'Tokyo district',
+    mode: 'Classic / Defuse',
+    backgroundSrc: '/assets/maps/hanami/background.webp',
+    radarSrc: '/assets/maps/hanami/radar.webp',
+  },
+  {
+    id: 'province',
+    name: 'Province',
+    location: 'Mediterranean town',
+    mode: 'Classic / Defuse',
+    backgroundSrc: '/assets/maps/province/background.webp',
+    radarSrc: '/assets/maps/province/radar.webp',
+  },
+  {
+    id: 'zone7',
+    name: 'Zone 7',
+    location: 'Scientific facility',
+    mode: 'Classic / Defuse',
+    backgroundSrc: '/assets/maps/zone7/background.webp',
+    radarSrc: '/assets/maps/zone7/radar.webp',
+  },
+]

@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --bg: #030712;
+  --panel: rgba(8, 15, 28, 0.8);
+  --text-strong: #f8fafc;
+  --text-body: #d8e0ee;
+  --text-muted: #9fb0c8;
+  --accent-soft: #7dd3fc;
+  --border: rgba(148, 163, 184, 0.18);
+  --display-font: 'Space Grotesk', 'Avenir Next', 'Segoe UI', sans-serif;
+  --body-font: 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
+  --hero-font: 'Inter', 'Manrope', 'Avenir Next', 'Segoe UI', sans-serif;
+  font-family: var(--body-font);
+  color: var(--text-body);
+  background:
+    radial-gradient(circle at top, rgba(249, 115, 22, 0.12), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(8, 145, 178, 0.12), transparent 24%),
+    var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--bg);
+}
+
+body,
+button,
+input {
+  font-family: var(--body-font);
+}
+
+img {
+  max-width: 100%;
+}
+
+button:hover,
+button:focus-visible {
+  transform: translateY(-1px);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid rgba(111, 255, 233, 0.72);
+  outline-offset: 2px;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--display-font);
+  color: var(--text-strong);
+}
+
+p {
+  line-height: 1.55;
+}
+
+a {
+  color: inherit;
+}
