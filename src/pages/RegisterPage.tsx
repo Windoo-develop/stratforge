@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useToast } from '../contexts/ToastContext'
-import { signUpWithProfile } from '../lib/authApi'
+import { isEmailAvailable, signUpWithProfile } from '../lib/authApi'
 import { getErrorMessage } from '../lib/errors'
 import {
   clearPendingProfileDraft,
@@ -47,6 +47,11 @@ export function RegisterPage() {
   const normalizedBio = useMemo(() => bio.slice(0, 200), [bio])
 
   const handleContinue = () => {
+    if (!email.trim()) {
+      pushToast({ tone: 'error', title: 'Email is required' })
+      return
+    }
+
     if (password !== confirmPassword) {
       pushToast({ tone: 'error', title: 'Passwords do not match' })
       return
@@ -90,6 +95,16 @@ export function RegisterPage() {
     setLoading(true)
 
     try {
+      const availableEmail = await isEmailAvailable(email)
+      if (!availableEmail) {
+        pushToast({
+          tone: 'error',
+          title: 'Email is already taken',
+          message: 'Use another email or log in to your existing account.',
+        })
+        return
+      }
+
       const available = await isUsernameAvailable(trimmedUsername)
       if (!available) {
         pushToast({

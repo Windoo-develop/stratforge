@@ -8,6 +8,24 @@ export type RegisterPayload = {
   avatarUrl: string | null
 }
 
+export async function isEmailAvailable(email: string) {
+  const normalizedEmail = email.trim().toLowerCase()
+
+  if (!normalizedEmail) {
+    return false
+  }
+
+  const { data, error } = await supabase.functions.invoke('check-email-availability', {
+    body: { email: normalizedEmail },
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return Boolean(data?.available)
+}
+
 export async function signInWithPassword(email: string, password: string) {
   const { error } = await supabase.auth.signInWithPassword({
     email,

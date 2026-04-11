@@ -14,6 +14,18 @@ export function getErrorMessage(error: unknown, fallback = 'Unexpected error') {
     return 'Supabase signup trigger failed while creating the profile row. Apply 20260405_registration_trigger_failsafe.sql in the SQL Editor.'
   }
 
+  if (/user already registered|email.*already.*registered|email.*already.*taken/i.test(rawMessage)) {
+    return 'This email is already taken. Try logging in or use another email.'
+  }
+
+  if (/edge function returned a non-2xx status code/i.test(rawMessage)) {
+    return 'Email availability check failed. Deploy the Supabase Edge Function check-email-availability and try again.'
+  }
+
+  if (/failed to send a request to the edge function/i.test(rawMessage)) {
+    return 'Could not reach the email availability check. Verify that the Supabase Edge Function is deployed.'
+  }
+
   if (rawMessage.trim()) {
     return rawMessage
   }
