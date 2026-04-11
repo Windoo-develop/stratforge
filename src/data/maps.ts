@@ -50,11 +50,11 @@ export const MAPS: MapDefinition[] = [
     radarSrc: '/assets/maps/province/radar.webp',
   },
   {
-    id: 'zone7',
-    name: 'Zone 7',
-    location: 'Scientific facility',
+    id: 'prison',
+    name: 'Prison',
+    location: 'Detention complex',
     mode: 'Classic / Defuse',
-    backgroundSrc: '/assets/maps/zone7/background.webp',
-    radarSrc: '/assets/maps/zone7/radar.webp',
+    backgroundSrc: '/assets/maps/prison/background.webp',
+    radarSrc: '/assets/maps/prison/radar.webp',
   },
 ]
