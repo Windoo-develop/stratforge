@@ -63,6 +63,18 @@ export type MapDefinition = {
   radarSrc: string
 }
 
+export type MapAnchorCategory = 'spawn' | 'site' | 'route' | 'control' | 'plant'
+
+export type MapAnchor = {
+  id: string
+  mapId: string
+  label: string
+  shortLabel?: string
+  x: number
+  y: number
+  category: MapAnchorCategory
+}
+
 export type UtilityDefinition = {
   id: string
   name: string

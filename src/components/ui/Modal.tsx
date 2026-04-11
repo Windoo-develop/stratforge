@@ -6,14 +6,25 @@ type ModalProps = PropsWithChildren<{
   description?: string
   onClose: () => void
   footer?: ReactNode
+  className?: string
+  bodyClassName?: string
 }>
 
-export function Modal({ open, title, description, onClose, footer, children }: ModalProps) {
+export function Modal({
+  open,
+  title,
+  description,
+  onClose,
+  footer,
+  className,
+  bodyClassName,
+  children,
+}: ModalProps) {
   if (!open) return null
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-card" onClick={(event) => event.stopPropagation()}>
+      <div className={className ? `modal-card ${className}` : 'modal-card'} onClick={(event) => event.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-heading">
             <h3>{title}</h3>
@@ -24,7 +35,7 @@ export function Modal({ open, title, description, onClose, footer, children }: M
           </button>
         </div>
 
-        <div className="modal-body">{children}</div>
+        <div className={bodyClassName ? `modal-body ${bodyClassName}` : 'modal-body'}>{children}</div>
 
         {footer ? <div className="modal-footer">{footer}</div> : null}
       </div>
