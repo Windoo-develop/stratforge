@@ -24,6 +24,8 @@ const PROFILE_SELECT = `
   avatar_url,
   bio,
   team_id,
+  advanced_access_enabled,
+  standoff_player_id,
   created_at
 `
 

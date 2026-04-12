@@ -14,6 +14,7 @@ import {
   finalizePendingProfileDraft,
   resolveProfileForUser,
 } from '../lib/profileApi'
+import { isPlatformAdminEmail } from '../lib/admin'
 import { supabase } from '../lib/supabaseClient'
 import type { Profile } from '../types/domain'
 
@@ -21,6 +22,7 @@ type AuthContextValue = {
   session: Session | null
   user: User | null
   profile: Profile | null
+  isAdmin: boolean
   loading: boolean
   refreshProfile: () => Promise<void>
   signOut: () => Promise<void>
@@ -120,6 +122,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     session,
     user,
     profile,
+    isAdmin: isPlatformAdminEmail(user?.email),
     loading,
     refreshProfile,
     signOut: async () => {

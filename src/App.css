@@ -101,6 +101,62 @@
   font-weight: 700;
 }
 
+/* Keep standalone buttons breathing, while grouped controls keep using container gaps. */
+.ghost-action,
+.primary-action,
+.danger-action,
+.mini-action,
+.icon-button,
+.filter-chip,
+.permission-toggle,
+.icon-choice,
+.grenade-toggle,
+.side-toggle,
+.favorite-toggle,
+.navbar-link,
+.navbar-mobile-link,
+.navbar-menu-button,
+.dashboard-tab,
+.zoom-button,
+.tool-button,
+.utility-button,
+.replay-step-pill,
+.map-card,
+.map-pill {
+  margin-top: 20px;
+}
+
+.topbar-actions > *,
+.map-list > *,
+.zoom-panel > *,
+.tool-grid > *,
+.utility-grid > *,
+.danger-row > *,
+.navbar-links > *,
+.navbar-user > *,
+.modal-footer > *,
+.inline-actions > *,
+.filter-bar > *,
+.badge-toggle-row > *,
+.chip-row > *,
+.dashboard-tabs > *,
+.permission-icons > *,
+.content-badge-row > *,
+.content-meta-row > *,
+.lineup-throw-icons > *,
+.map-pill-grid > *,
+.anchor-pill-row > *,
+.anchor-chip-grid > *,
+.home-actions > *,
+.navbar-mobile-auth > *,
+.navbar-mobile-panel > *,
+.support-thread-header .inline-actions > *,
+.support-page-header .inline-actions > *,
+.support-page-header .chip-row > *,
+.registration-review-card .inline-actions > * {
+  margin-top: 0;
+}
+
 .hero-panel {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
@@ -708,6 +764,30 @@
 
 .shell-layout {
   min-height: 100svh;
+  position: relative;
+  isolation: isolate;
+}
+
+.shell-layout::before,
+.shell-layout::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.shell-layout::before {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(255, 153, 0, 0.12), transparent 26%),
+    radial-gradient(circle at 82% 12%, rgba(113, 244, 255, 0.08), transparent 20%);
+  z-index: -2;
+}
+
+.shell-layout::after {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 18%),
+    linear-gradient(90deg, rgba(113, 244, 255, 0.015) 0%, transparent 32%, transparent 68%, rgba(255, 153, 0, 0.015) 100%);
+  z-index: -1;
 }
 
 .app-navbar {
@@ -937,6 +1017,296 @@ img.user-avatar {
   padding: 20px 16px 120px;
 }
 
+.support-workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+  gap: 24px;
+}
+
+.support-page,
+.admin-page {
+  display: grid;
+  gap: 24px;
+}
+
+.support-page-header {
+  margin-bottom: 0;
+}
+
+.support-page-header h1 {
+  margin: 6px 0 0;
+}
+
+.support-page-header .hero-text {
+  display: block;
+  margin-top: 10px;
+  max-width: 68ch;
+  line-height: 1.65;
+}
+
+.support-page-header .inline-actions,
+.support-page-header .chip-row,
+.support-thread-header .inline-actions,
+.registration-review-card .inline-actions {
+  gap: 12px;
+}
+
+.support-page .inline-actions > .ghost-action,
+.support-page .inline-actions > .primary-action,
+.support-page .inline-actions > .danger-action,
+.support-page .comment-compose-footer > .ghost-action,
+.support-page .comment-compose-footer > .primary-action,
+.support-page .comment-compose-footer > .danger-action,
+.support-page .modal-footer > .ghost-action,
+.support-page .modal-footer > .primary-action,
+.support-page .modal-footer > .danger-action,
+.admin-page .inline-actions > .ghost-action,
+.admin-page .inline-actions > .primary-action,
+.admin-page .inline-actions > .danger-action,
+.admin-page .modal-footer > .ghost-action,
+.admin-page .modal-footer > .primary-action,
+.admin-page .modal-footer > .danger-action,
+.admin-page .chip-row > .filter-chip,
+.admin-page .chip-row > .ghost-action,
+.admin-page .chip-row > .primary-action,
+.admin-page .chip-row > .danger-action {
+  margin-top: 20px;
+}
+
+.support-sidebar,
+.support-thread-panel,
+.registration-review-card {
+  padding: 24px;
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.52)),
+    rgba(8, 15, 28, 0.84);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  box-shadow:
+    0 18px 48px rgba(2, 6, 23, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.support-sidebar,
+.support-thread-panel,
+.support-message-list,
+.support-conversation-list,
+.registration-review-list {
+  display: grid;
+  gap: 18px;
+}
+
+.support-sidebar-header,
+.support-thread-header,
+.registration-review-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.support-sidebar-header h3,
+.support-thread-header h2 {
+  margin: 0;
+}
+
+.support-thread-header h2 {
+  margin-top: 4px;
+}
+
+.support-sidebar-header span,
+.support-thread-updated,
+.support-conversation-meta,
+.registration-review-header span {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.support-conversation-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(15, 23, 42, 0.68);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.support-conversation-card.active {
+  border-color: rgba(111, 255, 233, 0.38);
+  box-shadow: 0 0 0 1px rgba(111, 255, 233, 0.14);
+}
+
+.support-conversation-title,
+.support-conversation-user,
+.support-message-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.support-conversation-user,
+.support-message-author {
+  justify-content: flex-start;
+}
+
+.support-conversation-user > div,
+.support-message-author > div {
+  display: grid;
+  gap: 4px;
+}
+
+.support-conversation-user span,
+.support-message-author span {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.support-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  text-transform: capitalize;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.support-status-pill.status-open {
+  color: #99f6e4;
+  background: rgba(20, 83, 45, 0.24);
+}
+
+.support-status-pill.status-pending {
+  color: #fde68a;
+  background: rgba(120, 53, 15, 0.24);
+}
+
+.support-status-pill.status-closed,
+.support-status-pill.status-rejected {
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.24);
+}
+
+.support-status-pill.status-approved {
+  color: #bbf7d0;
+  background: rgba(20, 83, 45, 0.24);
+}
+
+.support-message-list {
+  min-height: 360px;
+  max-height: 60svh;
+  overflow: auto;
+  padding-right: 8px;
+}
+
+.support-message-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(15, 23, 42, 0.66);
+}
+
+.support-message-card.mine {
+  border-color: rgba(34, 211, 238, 0.28);
+}
+
+.support-message-card.admin {
+  background:
+    linear-gradient(180deg, rgba(34, 211, 238, 0.08), rgba(34, 211, 238, 0)),
+    rgba(15, 23, 42, 0.7);
+}
+
+.support-message-card p {
+  margin: 0;
+  line-height: 1.72;
+}
+
+.support-compose {
+  margin-top: auto;
+  padding: 18px;
+}
+
+.support-compose textarea {
+  min-height: 132px;
+}
+
+.registration-review-list {
+  margin-top: 18px;
+}
+
+.registration-review-card {
+  gap: 18px;
+}
+
+.registration-review-card label {
+  display: grid;
+  gap: 10px;
+  color: var(--text-muted);
+}
+
+.registration-review-card textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(15, 23, 42, 0.9);
+  color: var(--text-strong);
+  padding: 14px 16px;
+  font: inherit;
+  resize: vertical;
+}
+
+.registration-review-payload {
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(8, 15, 28, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  overflow: auto;
+}
+
+.registration-review-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.registration-review-details > div {
+  display: grid;
+  gap: 6px;
+}
+
+.registration-review-image {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(15, 23, 42, 0.84);
+}
+
+.registration-review-payload pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-body);
+  font: 0.88rem/1.6 var(--mono-font, 'SFMono-Regular', Consolas, monospace);
+}
+
 .home-actions,
 .team-hub,
 .team-dashboard-page {
@@ -959,6 +1329,35 @@ img.user-avatar {
   margin-bottom: 20px;
 }
 
+.dm-page {
+  display: grid;
+  gap: 24px;
+}
+
+.dm-summary-grid {
+  margin-bottom: 0;
+}
+
+.dm-tab-actions {
+  margin-top: 16px;
+}
+
+.dm-tab-actions > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.dm-summary-card {
+  display: grid;
+  gap: 8px;
+}
+
+.dm-summary-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+
 .team-hub-panel,
 .auth-card,
 .modal-card,
@@ -979,6 +1378,76 @@ img.user-avatar {
 .content-grid {
   display: grid;
   gap: 12px;
+}
+
+.dm-lobby-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+button.dm-lobby-card {
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  border: 0;
+  background: transparent;
+}
+
+.dm-lobby-hero {
+  position: relative;
+  min-height: 132px;
+  border-radius: 18px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+}
+
+.dm-lobby-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.16), rgba(2, 6, 23, 0.82));
+}
+
+.dm-lobby-hero-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+}
+
+.dm-map-label,
+.dm-expiry-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(8, 15, 28, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+.dm-expiry-pill {
+  font-size: 0.82rem;
+  color: rgba(226, 232, 240, 0.88);
+}
+
+.dm-create-form {
+  gap: 18px;
+}
+
+.dm-detail-grid,
+.dm-detail-actions {
+  display: grid;
+  gap: 14px;
+}
+
+.dm-detail-actions > * {
+  margin: 0;
 }
 
 .team-card,
@@ -1197,6 +1666,55 @@ img.user-avatar {
   gap: 16px;
 }
 
+.profile-panel-wide {
+  grid-column: 1 / -1;
+}
+
+.profile-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.profile-panel-header h2 {
+  margin: 0;
+}
+
+.profile-review-note {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.76);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.profile-review-note strong {
+  color: var(--text-strong);
+}
+
+.profile-review-note p {
+  margin: 0;
+}
+
+.profile-advanced-actions {
+  margin-top: 20px;
+}
+
+.profile-advanced-actions > * {
+  margin: 0;
+}
+
+.profile-edit-actions,
+.registration-review-card .inline-actions,
+.profile-page .modal-footer,
+.support-page .modal-footer {
+  margin-top: 20px;
+}
+
 .profile-edit-form {
   margin-top: 18px;
   padding: 22px;
@@ -1255,8 +1773,11 @@ img.user-avatar {
 }
 
 .profile-edit-actions {
-  margin-top: 16px;
   justify-content: flex-end;
+}
+
+.profile-edit-actions > * {
+  margin: 0;
 }
 
 .profile-panel {
@@ -2370,6 +2891,468 @@ img.user-avatar {
   border: 0;
 }
 
+/* Tactical Intelligence Design System overrides */
+.app-shell,
+.page-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow,
+.muted-label,
+.roster-table th,
+.share-card-eyebrow,
+.share-card-label,
+.support-sidebar-header span,
+.support-thread-updated,
+.support-conversation-meta,
+.registration-review-header span {
+  font-family: 'Inter', var(--body-font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(219, 194, 173, 0.72);
+}
+
+.ghost-action,
+.primary-action,
+.danger-action,
+.zoom-button,
+.tool-button,
+.mini-action,
+.utility-button,
+.filter-chip,
+.side-toggle,
+.pill-badge,
+.dashboard-tab,
+.navbar-link,
+.navbar-mobile-link,
+.favorite-toggle,
+.selection-tag,
+.anchor-pill,
+.anchor-chip,
+.role-preset-badge,
+.profile-user-code,
+.share-card-map,
+.share-card-lineup-pill,
+.replay-step-pill,
+.presentation-step-index,
+.icon-button,
+.navbar-menu-button,
+.support-status-pill {
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+}
+
+.ghost-action,
+.primary-action,
+.danger-action,
+.mini-action,
+.zoom-button,
+.filter-chip,
+.side-toggle,
+.dashboard-tab,
+.navbar-link,
+.navbar-mobile-link,
+.favorite-toggle,
+.icon-button,
+.navbar-menu-button,
+.support-status-pill {
+  font-family: 'Inter', var(--hero-font);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.ghost-action,
+.zoom-button,
+.mini-action,
+.filter-chip,
+.side-toggle,
+.dashboard-tab,
+.navbar-link,
+.navbar-mobile-link,
+.favorite-toggle,
+.selection-tag,
+.anchor-pill,
+.anchor-chip,
+.share-card-map,
+.share-card-lineup-pill,
+.replay-step-pill,
+.presentation-step-index,
+.icon-button,
+.navbar-menu-button,
+.support-status-pill,
+.pill-badge {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+    rgba(24, 35, 59, 0.72);
+  border: 1px solid rgba(219, 194, 173, 0.14);
+  color: var(--text-body);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.ghost-action:hover,
+.zoom-button:hover,
+.mini-action:hover,
+.filter-chip:hover,
+.side-toggle:hover,
+.dashboard-tab:hover,
+.navbar-link:hover,
+.navbar-mobile-link:hover,
+.favorite-toggle:hover,
+.icon-button:hover,
+.navbar-menu-button:hover,
+.support-conversation-card:hover,
+.content-card:hover,
+.tool-button:hover,
+.utility-button:hover,
+.linked-lineup-chip:hover {
+  border-color: rgba(113, 244, 255, 0.3);
+  box-shadow:
+    0 0 0 1px rgba(113, 244, 255, 0.08),
+    0 14px 34px rgba(0, 241, 254, 0.06);
+}
+
+.primary-action,
+.fab-action {
+  color: #120e06;
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+  border: 1px solid rgba(255, 192, 130, 0.34);
+  box-shadow:
+    0 0 0 1px rgba(255, 192, 130, 0.12),
+    0 0 22px rgba(255, 153, 0, 0.12);
+}
+
+.primary-action:hover,
+.fab-action:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 192, 130, 0.18),
+    0 0 30px rgba(255, 153, 0, 0.2);
+}
+
+.danger-action {
+  color: #fff4eb;
+  background: linear-gradient(135deg, #ff8c6b, #ef4444);
+  border: 1px solid rgba(255, 166, 138, 0.26);
+}
+
+.hero-panel,
+.stat-card,
+.tool-panel,
+.selection-panel,
+.board-panel,
+.team-hub-panel,
+.auth-card,
+.modal-card,
+.empty-panel,
+.support-sidebar,
+.support-thread-panel,
+.registration-review-card,
+.content-card,
+.profile-card,
+.profile-panel,
+.team-dashboard-header,
+.presentation-summary-card,
+.share-card-panel,
+.version-history-card,
+.detail-section,
+.comment-compose,
+.replay-step-card,
+.comment-card,
+.training-task-card,
+.training-preview-item,
+.training-check-item,
+.presentation-step-card,
+.support-conversation-card,
+.support-message-card,
+.profile-review-note,
+.registration-review-payload,
+.stack-form .field-group,
+.linked-lineup-chip,
+.team-card,
+.invite-card {
+  border-radius: 12px;
+  border: 1px solid rgba(219, 194, 173, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+    linear-gradient(180deg, rgba(19, 30, 50, 0.96), rgba(12, 19, 36, 0.92));
+  box-shadow:
+    0 20px 50px rgba(0, 241, 254, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(14px);
+}
+
+.hero-panel,
+.team-hub-panel,
+.board-panel,
+.tool-panel,
+.selection-panel,
+.support-sidebar,
+.support-thread-panel,
+.registration-review-card,
+.profile-card,
+.modal-card,
+.content-card,
+.auth-card,
+.empty-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-panel::before,
+.team-hub-panel::before,
+.board-panel::before,
+.tool-panel::before,
+.selection-panel::before,
+.support-sidebar::before,
+.support-thread-panel::before,
+.registration-review-card::before,
+.profile-card::before,
+.modal-card::before,
+.content-card::before,
+.auth-card::before,
+.empty-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(0deg, transparent 0%, rgba(255, 255, 255, 0.015) 100%),
+    linear-gradient(90deg, rgba(113, 244, 255, 0.025) 0%, transparent 26%, transparent 74%, rgba(255, 153, 0, 0.025) 100%);
+}
+
+.hero-panel,
+.team-dashboard-header {
+  background:
+    radial-gradient(circle at top left, rgba(113, 244, 255, 0.08), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(255, 153, 0, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(19, 30, 50, 0.96), rgba(12, 19, 36, 0.92));
+}
+
+.map-card,
+.map-pill,
+.lineup-detail-image,
+.board-radar,
+.registration-review-image {
+  border-radius: 10px;
+}
+
+.tool-button,
+.utility-button,
+.support-conversation-card,
+.linked-lineup-chip,
+.support-message-card,
+.team-card,
+.invite-card {
+  border-radius: 10px;
+}
+
+.tool-button,
+.utility-button {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0)),
+    rgba(24, 35, 59, 0.56);
+  border: 1px solid rgba(219, 194, 173, 0.09);
+}
+
+.tool-button.active,
+.utility-button.active,
+.dashboard-tab.active,
+.filter-chip.active,
+.side-toggle.active,
+.map-pill.active,
+.map-card.active,
+.permission-toggle.active,
+.icon-choice.active,
+.grenade-toggle.active,
+.linked-lineup-chip.active,
+.support-conversation-card.active,
+.presentation-step-card.active,
+.replay-step-pill.active,
+.favorite-toggle.active,
+.anchor-chip.active {
+  border-color: rgba(113, 244, 255, 0.38);
+  box-shadow:
+    inset 0 0 0 1px rgba(113, 244, 255, 0.24),
+    0 0 28px rgba(0, 241, 254, 0.06);
+}
+
+.board-hint {
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0)),
+    rgba(18, 27, 46, 0.82);
+  border: 1px solid rgba(219, 194, 173, 0.1);
+  color: var(--text-muted);
+}
+
+.badge-t {
+  background: rgba(255, 192, 130, 0.14);
+  color: #ffd2a6;
+}
+
+.badge-ct {
+  background: rgba(113, 244, 255, 0.14);
+  color: #baf7ff;
+}
+
+.board-shell,
+.comment-compose,
+.detail-section,
+.share-card,
+.presentation-summary-card {
+  border-radius: 10px;
+}
+
+.board-shell {
+  background:
+    linear-gradient(rgba(113, 244, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(113, 244, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(19, 30, 50, 0.8), rgba(12, 19, 36, 0.64));
+  background-size: 24px 24px, 24px 24px, auto;
+  border: 1px solid rgba(219, 194, 173, 0.08);
+}
+
+.stack-form input,
+.stack-form select,
+.stack-form textarea,
+.table-input,
+.field-list input[type='text'],
+.field-list input[type='color'],
+.profile-edit-grid input,
+.profile-edit-grid textarea,
+.registration-review-card textarea,
+.replay-step-card textarea,
+.comment-compose textarea {
+  border-radius: 6px;
+  border: 1px solid rgba(219, 194, 173, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0)),
+    rgba(13, 20, 37, 0.94);
+  color: var(--text-strong);
+}
+
+.stack-form input:focus,
+.stack-form select:focus,
+.stack-form textarea:focus,
+.table-input:focus,
+.field-list input[type='text']:focus,
+.profile-edit-grid input:focus,
+.profile-edit-grid textarea:focus,
+.registration-review-card textarea:focus,
+.replay-step-card textarea:focus,
+.comment-compose textarea:focus {
+  border-color: rgba(255, 192, 130, 0.56);
+  box-shadow:
+    0 0 0 1px rgba(255, 192, 130, 0.18),
+    0 0 16px rgba(255, 153, 0, 0.12);
+  background: rgba(12, 19, 36, 0.98);
+}
+
+.app-navbar {
+  background:
+    linear-gradient(180deg, rgba(13, 20, 37, 0.96), rgba(13, 20, 37, 0.78)),
+    rgba(12, 19, 36, 0.84);
+  border-bottom: 1px solid rgba(219, 194, 173, 0.09);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+}
+
+.brand-lockup img {
+  filter:
+    drop-shadow(0 0 12px rgba(255, 153, 0, 0.22))
+    drop-shadow(0 0 22px rgba(113, 244, 255, 0.1));
+}
+
+.brand-lockup span,
+.navbar-profile-copy strong,
+.support-thread-header h2,
+.support-page-header h1,
+.profile-heading h1,
+.team-dashboard-header h1 {
+  letter-spacing: -0.02em;
+}
+
+.brand-lockup small {
+  margin-left: 14px;
+  color: rgba(219, 194, 173, 0.76);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.navbar-link.active {
+  background: rgba(113, 244, 255, 0.1);
+  color: var(--text-strong);
+  box-shadow: inset 0 0 0 1px rgba(113, 244, 255, 0.18);
+}
+
+.navbar-profile-card,
+.navbar-mobile-profile,
+.user-pill {
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0)),
+    rgba(18, 27, 46, 0.78);
+  border: 1px solid rgba(219, 194, 173, 0.1);
+}
+
+.user-avatar {
+  border-color: rgba(219, 194, 173, 0.12);
+  background: rgba(18, 27, 46, 0.92);
+}
+
+.user-avatar.fallback {
+  background: linear-gradient(135deg, var(--secondary), var(--primary-strong));
+}
+
+.selection-tag,
+.anchor-pill,
+.anchor-chip,
+.role-preset-badge,
+.profile-user-code,
+.share-card-map,
+.share-card-lineup-pill,
+.share-card-panel,
+.version-history-card,
+.detail-section,
+.comment-compose,
+.replay-step-card,
+.comment-card,
+.training-task-card,
+.training-preview-item,
+.training-check-item,
+.presentation-step-card,
+.presentation-step-index,
+.replay-step-pill,
+.favorite-toggle,
+.pill-badge,
+.support-status-pill {
+  border-radius: 4px;
+}
+
+.filter-bar {
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0)),
+    rgba(18, 27, 46, 0.64);
+  border: 1px solid rgba(219, 194, 173, 0.08);
+}
+
+.share-card {
+  border-radius: 12px;
+  border: 1px solid rgba(219, 194, 173, 0.12);
+  box-shadow: 0 24px 60px rgba(0, 241, 254, 0.08);
+}
+
+.roster-table th,
+.roster-table td {
+  border-bottom-color: rgba(219, 194, 173, 0.08);
+}
+
+.toast-card {
+  border-radius: 8px;
+  background: rgba(12, 19, 36, 0.96);
+  border-color: rgba(219, 194, 173, 0.12);
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -2391,8 +3374,17 @@ img.user-avatar {
   }
 
   .presentation-shell,
-  .training-shell {
+  .training-shell,
+  .support-workspace {
     grid-template-columns: 1fr;
+  }
+
+  .support-workspace {
+    gap: 20px;
+  }
+
+  .support-message-list {
+    max-height: none;
   }
 
   .profile-grid {
@@ -2525,6 +3517,39 @@ img.user-avatar {
 
   .profile-page {
     padding-inline: 12px;
+  }
+
+  .support-page,
+  .admin-page {
+    gap: 18px;
+  }
+
+  .support-sidebar,
+  .support-thread-panel,
+  .registration-review-card {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .support-conversation-card,
+  .support-message-card {
+    padding: 16px;
+  }
+
+  .support-page-header .inline-actions,
+  .support-page-header .chip-row,
+  .support-thread-header .inline-actions,
+  .registration-review-card .inline-actions {
+    width: 100%;
+  }
+
+  .support-page-header .inline-actions > *,
+  .support-page-header .chip-row > *,
+  .support-thread-header .inline-actions > *,
+  .registration-review-card .inline-actions > * {
+    flex: 1 1 calc(50% - 6px);
+    text-align: center;
+    justify-content: center;
   }
 
   .profile-card {

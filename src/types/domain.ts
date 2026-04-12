@@ -9,11 +9,56 @@ export type Profile = {
   avatar_url: string | null
   bio: string | null
   team_id: string | null
+  advanced_access_enabled: boolean
+  standoff_player_id: string | null
   created_at: string
 }
 
 export type ProfileWithTeam = Profile & {
   team?: Team | null
+}
+
+export type SupportConversationStatus = 'open' | 'pending' | 'closed'
+
+export type SupportConversation = {
+  id: string
+  user_id: string
+  subject: string
+  status: SupportConversationStatus
+  created_at: string
+  updated_at: string
+  user?: Profile
+}
+
+export type SupportMessage = {
+  id: string
+  conversation_id: string
+  author_id: string
+  body: string
+  is_admin: boolean
+  created_at: string
+  author?: Profile
+}
+
+export type AdvancedRegistrationRequestStatus = 'pending' | 'approved' | 'rejected'
+
+export type AdvancedRegistrationPayload = {
+  standoff_player_id: string
+  stats_screenshot_url: string | null
+}
+
+export type AdvancedRegistrationRequest = {
+  id: string
+  user_id: string | null
+  email: string
+  status: AdvancedRegistrationRequestStatus
+  payload: AdvancedRegistrationPayload
+  admin_notes: string | null
+  created_at: string
+  reviewed_at: string | null
+  reviewed_by: string | null
+  user?: Profile
+  reviewer?: Profile
 }
 
 export type Team = {
@@ -22,6 +67,20 @@ export type Team = {
   avatar_url: string | null
   creator_id: string
   created_at: string
+}
+
+export type DmLobbyMode = 'dm' | 'pistol-dm' | 'rifles-dm' | 'awp-dm' | 'force-dm'
+
+export type DmLobby = {
+  id: string
+  creator_id: string
+  map_id: string
+  mode: DmLobbyMode
+  headshots_only: boolean
+  lobby_link: string
+  created_at: string
+  expires_at: string
+  creator?: Profile
 }
 
 export type TeamMember = {

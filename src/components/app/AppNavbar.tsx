@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { hasAdvancedAccess } from '../../lib/advancedAccess'
 import { useToast } from '../../contexts/ToastContext'
 import { UserAvatar } from '../ui/UserAvatar'
 
 export function AppNavbar() {
-  const { profile, user, signOut } = useAuth()
+  const { profile, user, isAdmin, signOut } = useAuth()
   const { pushToast } = useToast()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -19,6 +20,7 @@ export function AppNavbar() {
     profile?.avatar_url ??
     (typeof user?.user_metadata?.avatar_url === 'string' ? user.user_metadata.avatar_url : null)
   const displayCode = profile?.user_code ?? `ID ${user?.id.slice(0, 8) ?? ''}`
+  const advancedEnabled = hasAdvancedAccess(profile)
 
   useEffect(() => {
     if (!mobileOpen) return
@@ -58,7 +60,7 @@ export function AppNavbar() {
         <div className="app-navbar-row">
           <div className="navbar-primary">
             <Link to="/" className="brand-lockup">
-              <img src="/favicon.svg" alt="" />
+              <img src="/stratforge-logo.svg" alt="" />
               <div>
                 <span>StratForge</span>
                 <small>Standoff tactics board</small>
@@ -67,6 +69,24 @@ export function AppNavbar() {
           </div>
 
           <div className="navbar-spacer" />
+
+          {user ? (
+            <div className="navbar-links navbar-desktop-links">
+              {advancedEnabled ? (
+                <Link to="/dm" className="navbar-link">
+                  DM
+                </Link>
+              ) : null}
+              <Link to="/support" className="navbar-link">
+                Support
+              </Link>
+              {isAdmin ? (
+                <Link to="/admin" className="navbar-link">
+                  Admin
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="navbar-user navbar-desktop-user">
             {user ? (
@@ -111,6 +131,19 @@ export function AppNavbar() {
           <nav className="navbar-mobile-panel">
             {user ? (
               <>
+                {advancedEnabled ? (
+                  <Link to="/dm" className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
+                    DM
+                  </Link>
+                ) : null}
+                <Link to="/support" className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
+                  Support
+                </Link>
+                {isAdmin ? (
+                  <Link to="/admin" className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
+                    Admin
+                  </Link>
+                ) : null}
                 <Link to="/profile" className="navbar-mobile-profile" onClick={() => setMobileOpen(false)}>
                   <UserAvatar username={displayName} avatarUrl={displayAvatar} size="md" />
                   <div className="navbar-profile-copy">

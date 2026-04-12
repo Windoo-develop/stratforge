@@ -18,6 +18,22 @@ export function getErrorMessage(error: unknown, fallback = 'Unexpected error') {
     return 'This email is already taken. Try logging in or use another email.'
   }
 
+  if (/advanced_registration_requests_player_id_active_unique_idx|profiles_standoff_player_id_unique_idx|standoff_player_id/i.test(rawMessage)) {
+    return 'This Standoff 2 ID is already linked to another account or is already waiting for review.'
+  }
+
+  if (/advanced_registration_requests_one_pending_per_user_idx|duplicate key value violates unique constraint/i.test(rawMessage)) {
+    return 'You already have a pending advanced registration request. Wait for review before submitting another one.'
+  }
+
+  if (/review_advanced_registration_request|advanced_access_enabled|advanced-registration-screenshots|is_standoff_player_id_available/i.test(rawMessage)) {
+    return 'Advanced registration schema is outdated. Apply 20260411_advanced_registration_flow.sql and 20260411_advanced_identity_and_dm_lobbies.sql in the Supabase SQL Editor.'
+  }
+
+  if (/dm_lobbies|has_advanced_access/i.test(rawMessage)) {
+    return 'DM schema is outdated. Apply 20260411_advanced_identity_and_dm_lobbies.sql in the Supabase SQL Editor.'
+  }
+
   if (/edge function returned a non-2xx status code/i.test(rawMessage)) {
     return 'Email availability check failed. Deploy the Supabase Edge Function check-email-availability and try again.'
   }

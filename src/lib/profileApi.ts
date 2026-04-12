@@ -57,6 +57,8 @@ export function buildFallbackProfile(user: User): Profile {
     avatar_url: getMetadataString(user, 'avatar_url'),
     bio: getMetadataString(user, 'bio'),
     team_id: null,
+    advanced_access_enabled: false,
+    standoff_player_id: null,
     created_at: user.created_at ?? new Date().toISOString(),
   }
 }
@@ -118,6 +120,8 @@ export async function fetchProfileWithTeam(profileId: string) {
       avatar_url,
       bio,
       team_id,
+      advanced_access_enabled,
+      standoff_player_id,
       created_at
     `)
     .eq('id', profileId)
