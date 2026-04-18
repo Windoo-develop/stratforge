@@ -192,6 +192,12 @@ export function ReplayStepBoardModal({
             onMovePath={(id, nextPath) => {
               updatePath(id, () => nextPath)
             }}
+            onRotateEntity={(id, rotation) => {
+              updateEntity(id, (entity) => ({
+                ...entity,
+                rotation,
+              }))
+            }}
             onSelectEntity={(id) => setSelection({ kind: 'entity', id })}
             onSelectPath={(id) => setSelection({ kind: 'path', id })}
             onClearSelection={() => setSelection(null)}

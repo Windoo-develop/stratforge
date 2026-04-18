@@ -1,4 +1,5 @@
 import { Modal } from './Modal'
+import { useLocale } from '../../hooks/useLocale'
 
 type ConfirmDialogProps = {
   open: boolean
@@ -23,6 +24,9 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const { locale } = useLocale()
+  const isRu = locale === 'ru'
+
   return (
     <Modal
       open={open}
@@ -32,7 +36,7 @@ export function ConfirmDialog({
       footer={
         <>
           <button type="button" className="ghost-action" onClick={onCancel} disabled={loading}>
-            {cancelLabel}
+            {cancelLabel === 'Cancel' ? (isRu ? 'Отмена' : 'Cancel') : cancelLabel}
           </button>
           <button
             type="button"
@@ -40,7 +44,7 @@ export function ConfirmDialog({
             onClick={onConfirm}
             disabled={loading}
           >
-            {loading ? 'Working...' : confirmLabel}
+            {loading ? (isRu ? 'Выполняем...' : 'Working...') : confirmLabel === 'Confirm' ? (isRu ? 'Подтвердить' : 'Confirm') : confirmLabel}
           </button>
         </>
       }

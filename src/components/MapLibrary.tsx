@@ -1,4 +1,5 @@
 import type { MapDefinition } from '../types/editor'
+import { useLocale } from '../hooks/useLocale'
 
 type MapLibraryProps = {
   maps: MapDefinition[]
@@ -7,17 +8,24 @@ type MapLibraryProps = {
 }
 
 export function MapLibrary({ maps, activeMapId, onSelectMap }: MapLibraryProps) {
+  const { locale } = useLocale()
+  const isRu = locale === 'ru'
+
   return (
     <section className="map-library">
       <div className="map-library-header">
         <div>
-          <p className="eyebrow">Map Library</p>
-          <h3>Pick with the preview background</h3>
+          <p className="eyebrow">{isRu ? 'Библиотека карт' : 'Map Library'}</p>
+          <h3>{isRu ? 'Выбирай карту по превью-фону' : 'Pick with the preview background'}</h3>
         </div>
-        <p className="hero-text">Cards use the scene image. The editor swaps in the radar automatically.</p>
+        <p className="hero-text">
+          {isRu
+            ? 'Карточки используют сцену-превью, а в самом редакторе карта автоматически переключается на радар.'
+            : 'Cards use the scene image. The editor swaps in the radar automatically.'}
+        </p>
       </div>
 
-      <div className="map-list" role="list" aria-label="Available maps">
+      <div className="map-list" role="list" aria-label={isRu ? 'Доступные карты' : 'Available maps'}>
         {maps.map((map) => (
           <button
             key={map.id}

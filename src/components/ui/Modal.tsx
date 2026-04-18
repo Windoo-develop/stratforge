@@ -1,4 +1,5 @@
 import type { PropsWithChildren, ReactNode } from 'react'
+import { useLocale } from '../../hooks/useLocale'
 
 type ModalProps = PropsWithChildren<{
   open: boolean
@@ -20,6 +21,8 @@ export function Modal({
   bodyClassName,
   children,
 }: ModalProps) {
+  const { locale } = useLocale()
+
   if (!open) return null
 
   return (
@@ -30,7 +33,12 @@ export function Modal({
             <h3>{title}</h3>
             {description ? <p>{description}</p> : null}
           </div>
-          <button type="button" className="icon-button" onClick={onClose} aria-label="Close dialog">
+          <button
+            type="button"
+            className="icon-button"
+            onClick={onClose}
+            aria-label={locale === 'ru' ? 'Закрыть диалог' : 'Close dialog'}
+          >
             ×
           </button>
         </div>

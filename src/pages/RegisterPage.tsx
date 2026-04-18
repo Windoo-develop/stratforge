@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useLocale } from '../hooks/useLocale'
 import { useToast } from '../contexts/ToastContext'
 import { isEmailAvailable, signUpWithProfile } from '../lib/authApi'
 import { getErrorMessage } from '../lib/errors'
@@ -40,6 +41,7 @@ export function RegisterPage() {
   const [avatarUrl, setAvatarUrl] = useState('')
   const [bio, setBio] = useState('')
   const [loading, setLoading] = useState(false)
+  const { t } = useLocale()
   const { pushToast } = useToast()
   const navigate = useNavigate()
 
@@ -48,17 +50,17 @@ export function RegisterPage() {
 
   const handleContinue = () => {
     if (!email.trim()) {
-      pushToast({ tone: 'error', title: 'Email is required' })
+      pushToast({ tone: 'error', title: t('auth.emailRequired') })
       return
     }
 
     if (password !== confirmPassword) {
-      pushToast({ tone: 'error', title: 'Passwords do not match' })
+      pushToast({ tone: 'error', title: t('auth.passwordMismatch') })
       return
     }
 
     if (password.length < 8) {
-      pushToast({ tone: 'error', title: 'Password is too short', message: 'Use at least 8 characters.' })
+      pushToast({ tone: 'error', title: t('auth.passwordTooShort'), message: t('auth.passwordTooShortHint') })
       return
     }
 
@@ -72,22 +74,22 @@ export function RegisterPage() {
     if (!isValidUsername(trimmedUsername)) {
       pushToast({
         tone: 'error',
-        title: 'Invalid username',
-        message: 'Use 3-30 characters: letters, numbers and underscores only.',
+        title: t('auth.invalidUsername'),
+        message: t('auth.invalidUsernameHint'),
       })
       return
     }
 
     if (normalizedBio.length > 200) {
-      pushToast({ tone: 'error', title: 'Bio is too long', message: 'Keep it under 200 characters.' })
+      pushToast({ tone: 'error', title: t('auth.bioTooLong'), message: t('auth.bioTooLongHint') })
       return
     }
 
     if (avatarMode === 'url' && avatarUrl.trim() && !/^https?:\/\//i.test(avatarUrl.trim())) {
       pushToast({
         tone: 'error',
-        title: 'Avatar URL is invalid',
-        message: 'Use a full http or https image URL.',
+        title: t('auth.invalidAvatarUrl'),
+        message: t('auth.invalidAvatarUrlHint'),
       })
       return
     }
@@ -99,8 +101,8 @@ export function RegisterPage() {
       if (!availableEmail) {
         pushToast({
           tone: 'error',
-          title: 'Email is already taken',
-          message: 'Use another email or log in to your existing account.',
+          title: t('auth.emailTaken'),
+          message: t('auth.emailTakenHint'),
         })
         return
       }
@@ -109,8 +111,8 @@ export function RegisterPage() {
       if (!available) {
         pushToast({
           tone: 'error',
-          title: 'Username is taken',
-          message: 'Pick another handle before continuing.',
+          title: t('auth.usernameTaken'),
+          message: t('auth.usernameTakenHint'),
         })
         return
       }
@@ -138,15 +140,15 @@ export function RegisterPage() {
 
       pushToast({
         tone: 'success',
-        title: 'Account created',
-        message: 'Check your inbox, confirm your email, and we will finish syncing your profile setup.',
+        title: t('auth.accountCreated'),
+        message: t('auth.accountCreatedHint'),
       })
       navigate('/confirm-email')
     } catch (error) {
       clearPendingProfileDraft()
       pushToast({
         tone: 'error',
-        title: 'Registration failed',
+        title: t('auth.registrationFailed'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -157,16 +159,13 @@ export function RegisterPage() {
   return (
     <section className="auth-page">
       <div className="auth-card">
-        <p className="eyebrow">Authentication</p>
-        <h1>Create account</h1>
-        <p className="hero-text">
-          Start with your login details, then configure the player card that will appear across teams
-          and tactics.
-        </p>
+        <p className="eyebrow">{t('auth.authentication')}</p>
+        <h1>{t('auth.createAccount')}</h1>
+        <p className="hero-text">{t('auth.registerSubtitle')}</p>
 
         <div className="auth-stepper" aria-label="Registration steps">
-          <span className={`auth-step ${step === 1 ? 'active' : 'complete'}`}>1. Account</span>
-          <span className={`auth-step ${step === 2 ? 'active' : ''}`}>2. Profile setup</span>
+          <span className={`auth-step ${step === 1 ? 'active' : 'complete'}`}>{t('auth.stepAccount')}</span>
+          <span className={`auth-step ${step === 2 ? 'active' : ''}`}>{t('auth.stepProfile')}</span>
         </div>
 
         {step === 1 ? (
@@ -178,11 +177,11 @@ export function RegisterPage() {
             }}
           >
             <label>
-              Email
+              {t('auth.email')}
               <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required />
             </label>
             <label>
-              Password
+              {t('auth.password')}
               <input
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
@@ -192,7 +191,7 @@ export function RegisterPage() {
               />
             </label>
             <label>
-              Confirm password
+              {t('auth.confirmPassword')}
               <input
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
@@ -203,13 +202,13 @@ export function RegisterPage() {
             </label>
 
             <button type="submit" className="primary-action">
-              Continue to profile setup
+              {t('auth.continueToProfile')}
             </button>
           </form>
         ) : (
           <form className="stack-form" onSubmit={handleRegister}>
             <label>
-              Username
+              {t('auth.username')}
               <input
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
@@ -222,28 +221,28 @@ export function RegisterPage() {
             </label>
 
             <div className="field-group">
-              <span>Avatar source</span>
+              <span>{t('auth.avatarSource')}</span>
               <div className="badge-toggle-row">
                 <button
                   type="button"
                   className={`filter-chip ${avatarMode === 'upload' ? 'active' : ''}`}
                   onClick={() => setAvatarMode('upload')}
                 >
-                  Upload image
+                  {t('auth.uploadImage')}
                 </button>
                 <button
                   type="button"
                   className={`filter-chip ${avatarMode === 'url' ? 'active' : ''}`}
                   onClick={() => setAvatarMode('url')}
                 >
-                  Use image URL
+                  {t('auth.useImageUrl')}
                 </button>
               </div>
             </div>
 
             {avatarMode === 'upload' ? (
               <label>
-                Avatar image
+                {t('auth.avatarImage')}
                 <input
                   type="file"
                   accept="image/*"
@@ -252,7 +251,7 @@ export function RegisterPage() {
               </label>
             ) : (
               <label>
-                Avatar URL
+                {t('auth.avatarUrl')}
                 <input
                   value={avatarUrl}
                   onChange={(event) => setAvatarUrl(event.target.value)}
@@ -263,29 +262,30 @@ export function RegisterPage() {
             )}
 
             <label>
-              Bio
+              {t('auth.bio')}
               <textarea
                 value={bio}
                 onChange={(event) => setBio(event.target.value.slice(0, 200))}
                 rows={4}
                 maxLength={200}
+                placeholder={t('auth.bioPlaceholder')}
               />
               <span className="muted-label">{bio.length}/200</span>
             </label>
 
             <div className="modal-footer">
               <button type="button" className="ghost-action" onClick={() => setStep(1)} disabled={loading}>
-                Back
+                {t('common.cancel')}
               </button>
               <button type="submit" className="primary-action" disabled={loading}>
-                {loading ? 'Creating account...' : 'Create account'}
+                {loading ? `${t('auth.createAccount')}...` : t('auth.finishRegistration')}
               </button>
             </div>
           </form>
         )}
 
         <p className="auth-meta">
-          Already registered? <Link to="/login">Log in here</Link>
+          {t('auth.haveAccount')} <Link to="/login">{t('auth.loginHere')}</Link>
         </p>
       </div>
     </section>

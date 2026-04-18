@@ -1,5 +1,6 @@
 import { PLAYER_MARKER } from '../data/player'
 import { UTILITY_ITEMS } from '../data/utilities'
+import { useLocale } from '../hooks/useLocale'
 import type { MapEntity, ScenePath } from '../types/editor'
 
 type SelectionPanelProps = {
@@ -19,14 +20,17 @@ export function SelectionPanel({
   onUpdateEntity,
   onUpdatePath,
 }: SelectionPanelProps) {
+  const { locale } = useLocale()
+  const isRu = locale === 'ru'
+
   if (!selectedEntity && !selectedPath) {
     return (
       <section className="selection-panel">
-        <p className="eyebrow">Inspector</p>
-        <h3>Nothing selected</h3>
+        <p className="eyebrow">{isRu ? 'Инспектор' : 'Inspector'}</p>
+        <h3>{isRu ? 'Ничего не выбрано' : 'Nothing selected'}</h3>
         <div className="selection-empty">
-          <strong>Tap a placed item or a route.</strong>
-          <span>You will be able to rename players, tweak size, rotate icons, duplicate or delete.</span>
+          <strong>{isRu ? 'Нажмите на размещенный объект или маршрут.' : 'Tap a placed item or a route.'}</strong>
+          <span>{isRu ? 'Здесь можно переименовывать игроков, менять размер, вращать иконки, дублировать или удалять объекты.' : 'You will be able to rename players, tweak size, rotate icons, duplicate or delete.'}</span>
         </div>
       </section>
     )
@@ -35,16 +39,16 @@ export function SelectionPanel({
   if (selectedPath) {
     return (
       <section className="selection-panel">
-        <p className="eyebrow">Inspector</p>
-        <h3>Route Arrow</h3>
+        <p className="eyebrow">{isRu ? 'Инспектор' : 'Inspector'}</p>
+        <h3>{isRu ? 'Стрелка маршрута' : 'Route Arrow'}</h3>
         <div className="selection-meta">
-          <span className="selection-tag">Arrow selected</span>
-          <span className="selection-tag">Tap another element to switch focus</span>
+          <span className="selection-tag">{isRu ? 'Стрелка выбрана' : 'Arrow selected'}</span>
+          <span className="selection-tag">{isRu ? 'Нажмите на другой объект, чтобы сменить фокус' : 'Tap another element to switch focus'}</span>
         </div>
 
         <div className="field-list">
           <label>
-            Color
+            {isRu ? 'Цвет' : 'Color'}
             <input
               type="color"
               value={selectedPath.color}
@@ -55,7 +59,7 @@ export function SelectionPanel({
 
         <div className="danger-row">
           <button type="button" className="ghost-action" onClick={onDelete}>
-            Delete
+            {isRu ? 'Удалить' : 'Delete'}
           </button>
         </div>
       </section>
@@ -72,22 +76,22 @@ export function SelectionPanel({
     entity.kind === 'player'
       ? PLAYER_MARKER.name
       : entity.kind === 'utility'
-        ? UTILITY_ITEMS.find((utility) => utility.id === entity.utilityId)?.name ?? 'Utility'
-        : 'Element'
+        ? UTILITY_ITEMS.find((utility) => utility.id === entity.utilityId)?.name ?? (isRu ? 'Граната' : 'Utility')
+        : isRu ? 'Элемент' : 'Element'
 
   return (
     <section className="selection-panel">
-      <p className="eyebrow">Inspector</p>
+      <p className="eyebrow">{isRu ? 'Инспектор' : 'Inspector'}</p>
       <h3>{entityTitle}</h3>
       <div className="selection-meta">
-        <span className="selection-tag">Drag directly on map</span>
-        <span className="selection-tag">Scale and rotate here</span>
+        <span className="selection-tag">{isRu ? 'Перетаскивайте прямо на карте' : 'Drag directly on map'}</span>
+        <span className="selection-tag">{isRu ? 'Меняйте масштаб и поворот здесь' : 'Scale and rotate here'}</span>
       </div>
 
       <div className="field-list">
         {entity.kind === 'player' ? (
           <label>
-            Player name
+            {isRu ? 'Имя игрока' : 'Player name'}
             <input
               type="text"
               value={entity.label}
@@ -97,7 +101,7 @@ export function SelectionPanel({
         ) : null}
 
         <label>
-          Scale
+          {isRu ? 'Масштаб' : 'Scale'}
           <input
             type="range"
             min="0.2"
@@ -109,7 +113,7 @@ export function SelectionPanel({
         </label>
 
         <label>
-          Rotation
+          {isRu ? 'Поворот' : 'Rotation'}
           <input
             type="range"
             min="-180"
@@ -124,11 +128,11 @@ export function SelectionPanel({
       <div className="danger-row">
         {onDuplicate ? (
           <button type="button" className="ghost-action" onClick={onDuplicate}>
-            Duplicate
+            {isRu ? 'Дублировать' : 'Duplicate'}
           </button>
         ) : null}
         <button type="button" className="primary-action" onClick={onDelete}>
-          Delete
+          {isRu ? 'Удалить' : 'Delete'}
         </button>
       </div>
     </section>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocale } from '../hooks/useLocale'
 import { useToast } from '../contexts/ToastContext'
 import { signInWithGoogle, signInWithPassword } from '../lib/authApi'
 
@@ -7,6 +8,7 @@ export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const { t } = useLocale()
   const { pushToast } = useToast()
   const navigate = useNavigate()
   const location = useLocation()
@@ -18,12 +20,12 @@ export function LoginPage() {
 
     try {
       await signInWithPassword(email, password)
-      pushToast({ tone: 'success', title: 'Welcome back' })
+      pushToast({ tone: 'success', title: t('auth.welcomeBack') })
       navigate(location.state?.from?.pathname ?? '/')
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Login failed',
+        title: t('auth.loginFailed'),
         message: error instanceof Error ? error.message : 'Unexpected error',
       })
     } finally {
@@ -40,7 +42,7 @@ export function LoginPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Google login failed',
+        title: t('auth.googleLoginFailed'),
         message: error instanceof Error ? error.message : 'Unexpected error',
       })
     } finally {
@@ -51,31 +53,31 @@ export function LoginPage() {
   return (
     <section className="auth-page">
       <div className="auth-card">
-        <p className="eyebrow">Authentication</p>
-        <h1>Login</h1>
-        <p className="hero-text">Access your teams, lineups and strats with email/password or Google.</p>
+        <p className="eyebrow">{t('auth.authentication')}</p>
+        <h1>{t('auth.login')}</h1>
+        <p className="hero-text">{t('auth.loginSubtitle')}</p>
 
         <form className="stack-form" onSubmit={handleEmailLogin}>
           <label>
-            Email
+            {t('auth.email')}
             <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required />
           </label>
           <label>
-            Password
+            {t('auth.password')}
             <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required />
           </label>
 
           <button type="submit" className="primary-action" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign in'}
+            {loading ? t('auth.signingIn') : t('auth.signIn')}
           </button>
         </form>
 
         <button type="button" className="ghost-action auth-google" onClick={handleGoogleLogin} disabled={loading}>
-          Continue with Google
+          {t('auth.continueWithGoogle')}
         </button>
 
         <p className="auth-meta">
-          Need an account? <Link to="/register">Register here</Link>
+          {t('auth.needAccount')} <Link to="/register">{t('auth.registerHere')}</Link>
         </p>
       </div>
     </section>

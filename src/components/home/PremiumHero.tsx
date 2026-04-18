@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useLocale } from '../../hooks/useLocale'
 import './PremiumHero.css'
 
 const SANDSTONE_RADAR_SOURCE = '/assets/maps/sandstone/radar.webp'
@@ -10,27 +11,6 @@ type PremiumHeroProps = {
   onMakeTeam: () => void
   onMasterMap: () => void
 }
-
-const tacticalSignals = [
-  {
-    icon: '/assets/editor/system/crosshair.svg',
-    eyebrow: '[ CAP_01 ]',
-    title: 'Blueprint-to-live workflow',
-    body: 'Plan fast, brief clearly and move your squad from callout to execution without breaking flow.',
-  },
-  {
-    icon: '/assets/editor/system/book.svg',
-    eyebrow: '[ CAP_02 ]',
-    title: 'Shared team memory',
-    body: 'Keep lineups, routes and strats in one command layer the whole roster can actually use.',
-  },
-  {
-    icon: '/assets/editor/system/clock.svg',
-    eyebrow: '[ CAP_03 ]',
-    title: 'Match-ready timing',
-    body: 'Surface execute windows, utility cadence and presentation steps in a mobile-first board.',
-  },
-]
 
 const toolbarIcons = [
   '/assets/editor/system/cursor.svg',
@@ -55,7 +35,29 @@ export function PremiumHero({
   onMakeTeam,
   onMasterMap,
 }: PremiumHeroProps) {
+  const { t } = useLocale()
   const heroRef = useRef<HTMLElement | null>(null)
+
+  const tacticalSignals = [
+    {
+      icon: '/assets/editor/system/crosshair.svg',
+      eyebrow: '[ CAP_01 ]',
+      title: t('hero.signal1Title'),
+      body: t('hero.signal1Body'),
+    },
+    {
+      icon: '/assets/editor/system/book.svg',
+      eyebrow: '[ CAP_02 ]',
+      title: t('hero.signal2Title'),
+      body: t('hero.signal2Body'),
+    },
+    {
+      icon: '/assets/editor/system/clock.svg',
+      eyebrow: '[ CAP_03 ]',
+      title: t('hero.signal3Title'),
+      body: t('hero.signal3Body'),
+    },
+  ]
 
   useEffect(() => {
     const heroElement = heroRef.current
@@ -99,8 +101,8 @@ export function PremiumHero({
     }
   }, [])
 
-  const primaryLabel = isAuthenticated ? 'Open your command' : 'Make a team'
-  const statusLabel = isAuthenticated ? 'Operator linked' : 'System online'
+  const primaryLabel = isAuthenticated ? t('hero.primaryAuthed') : t('hero.primary')
+  const statusLabel = isAuthenticated ? t('hero.statusAuthed') : t('hero.statusOnline')
 
   return (
     <section ref={heroRef} className="premium-hero-upgrade" aria-label="StratForge tactical hero">
@@ -128,14 +130,11 @@ export function PremiumHero({
           </div>
 
           <div className="premium-hero-upgrade__headline-block">
-            <p className="premium-hero-upgrade__eyebrow">TACTICAL COMMAND CENTER</p>
+            <p className="premium-hero-upgrade__eyebrow">{t('hero.commandCenter')}</p>
             <h1 className="premium-hero-upgrade__headline">
-              Build Winning <span>Tactics Like a Pro</span>
+              {t('hero.headlineLineOne')} <span>{t('hero.headlineLineTwo')}</span>
             </h1>
-            <p className="premium-hero-upgrade__subtitle">
-              The ultimate tactical coordination engine for elite squads. Plan, execute and dominate
-              with high-fidelity blueprint-to-live workflows built for mobile-first team play.
-            </p>
+            <p className="premium-hero-upgrade__subtitle">{t('hero.subtitle')}</p>
           </div>
 
           <div className="premium-hero-upgrade__actions">
@@ -151,7 +150,7 @@ export function PremiumHero({
               className="premium-hero-upgrade__cta premium-hero-upgrade__cta--ghost"
               onClick={onMasterMap}
             >
-              Master the Map
+              {t('hero.secondary')}
             </button>
           </div>
 
@@ -198,7 +197,7 @@ export function PremiumHero({
                 <span />
               </div>
               <p>Workspace_Beta.vfx</p>
-              <span className="premium-hero-upgrade__workspace-live">Live: Connection secure</span>
+              <span className="premium-hero-upgrade__workspace-live">{t('hero.liveConnection')}</span>
             </div>
 
             <div className="premium-hero-upgrade__workspace-body">
@@ -262,13 +261,13 @@ export function PremiumHero({
               </div>
 
               <aside className="premium-hero-upgrade__inspector">
-                <h2>Utility inspector</h2>
+                <h2>{t('hero.utilityInspector')}</h2>
                 <div className="premium-hero-upgrade__inspector-block">
-                  <span>Object_Name</span>
+                  <span>{t('hero.objectName')}</span>
                   <strong>SMK_WINDOW_01</strong>
                 </div>
                 <div className="premium-hero-upgrade__inspector-block">
-                  <span>Coordinates</span>
+                  <span>{t('hero.coordinates')}</span>
                   <div className="premium-hero-upgrade__coordinate-grid">
                     <strong>X: 142.4</strong>
                     <strong>Y: 89.1</strong>
@@ -276,16 +275,16 @@ export function PremiumHero({
                 </div>
                 <div className="premium-hero-upgrade__toggles">
                   <div>
-                    <span>Visible to team</span>
+                    <span>{t('hero.visibleToTeam')}</span>
                     <b />
                   </div>
                   <div>
-                    <span>Collision sync</span>
+                    <span>{t('hero.collisionSync')}</span>
                     <b />
                   </div>
                 </div>
                 <button type="button" className="premium-hero-upgrade__inspector-action" tabIndex={-1}>
-                  Apply changes
+                  {t('hero.applyChanges')}
                 </button>
               </aside>
             </div>
@@ -302,9 +301,9 @@ export function PremiumHero({
       </div>
 
       <div className="premium-hero-upgrade__footer">
-        <span>Low latency sync</span>
-        <span>Multi-user canvas</span>
-        <span>Blueprint export</span>
+        <span>{t('hero.lowLatency')}</span>
+        <span>{t('hero.multiUser')}</span>
+        <span>{t('hero.blueprintExport')}</span>
       </div>
     </section>
   )

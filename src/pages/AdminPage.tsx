@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { SupportConversationList } from '../components/support/SupportConversationList'
 import { SupportMessageThread } from '../components/support/SupportMessageThread'
 import { useAuth } from '../contexts/AuthContext'
+import { useLocale } from '../hooks/useLocale'
 import { useToast } from '../contexts/ToastContext'
 import { getErrorMessage } from '../lib/errors'
 import { fetchAdvancedRegistrationRequests, reviewAdvancedRegistrationRequest } from '../lib/adminApi'
@@ -20,6 +21,7 @@ function AdvancedRegistrationReviewCard({
   request: AdvancedRegistrationRequest
   onUpdated: () => Promise<void>
 }) {
+  const { t, formatDateTime } = useLocale()
   const { pushToast } = useToast()
   const [notes, setNotes] = useState(request.admin_notes ?? '')
   const [savingStatus, setSavingStatus] = useState<AdvancedRegistrationRequestStatus | null>(null)
@@ -39,14 +41,14 @@ function AdvancedRegistrationReviewCard({
       })
       pushToast({
         tone: 'success',
-        title: 'Registration request updated',
-        message: `Request moved to ${status}.`,
+        title: t('admin.reviewRequestUpdated'),
+        message: t('admin.reviewRequestMovedHint', { status }),
       })
       await onUpdated()
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not review request',
+        title: t('admin.reviewRequestFailed'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -60,7 +62,7 @@ function AdvancedRegistrationReviewCard({
         <div>
           <strong>{request.email}</strong>
           <span>
-            {new Date(request.created_at).toLocaleString()}
+            {formatDateTime(request.created_at)}
             {request.user ? ` · ${request.user.username}` : ''}
           </span>
         </div>
@@ -71,15 +73,15 @@ function AdvancedRegistrationReviewCard({
         <div className="registration-review-details">
           <div>
             <span className="muted-label">Standoff 2 ID</span>
-            <strong>{request.payload.standoff_player_id || 'Not provided'}</strong>
+            <strong>{request.payload.standoff_player_id || t('admin.notProvided')}</strong>
           </div>
 
           {request.payload.stats_screenshot_url ? (
             <a href={request.payload.stats_screenshot_url} target="_blank" rel="noreferrer" className="ghost-action">
-              Open stats screenshot
+              {t('admin.openStatsScreenshot')}
             </a>
           ) : (
-            <span className="muted-label">No screenshot uploaded</span>
+            <span className="muted-label">{t('admin.noScreenshotUploaded')}</span>
           )}
         </div>
 
@@ -93,12 +95,12 @@ function AdvancedRegistrationReviewCard({
       </div>
 
       <label>
-        Admin notes
+        {t('admin.adminNotes')}
         <textarea
           rows={4}
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
-          placeholder="Internal notes for the review queue..."
+          placeholder={t('admin.adminNotesPlaceholder')}
         />
       </label>
 
@@ -111,7 +113,7 @@ function AdvancedRegistrationReviewCard({
             disabled={Boolean(savingStatus)}
             onClick={() => void applyStatus(status)}
           >
-            {savingStatus === status ? 'Saving...' : status}
+            {savingStatus === status ? t('admin.saving') : status}
           </button>
         ))}
       </div>
@@ -121,6 +123,7 @@ function AdvancedRegistrationReviewCard({
 
 export function AdminPage() {
   const { profile } = useAuth()
+  const { t, formatDateTime } = useLocale()
   const { pushToast } = useToast()
   const [activeTab, setActiveTab] = useState<'registrations' | 'support'>('support')
   const [conversations, setConversations] = useState<SupportConversation[]>([])
@@ -152,7 +155,7 @@ export function AdminPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not load support inbox',
+        title: t('admin.loadingSupportInbox'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -168,7 +171,7 @@ export function AdminPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not load support thread',
+        title: t('admin.loadingSupportThread'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -184,7 +187,7 @@ export function AdminPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not load registration queue',
+        title: t('admin.loadingRegistrationQueue'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -225,7 +228,7 @@ export function AdminPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not send admin reply',
+        title: t('admin.sendReplyFailed'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -240,32 +243,32 @@ export function AdminPage() {
       await updateSupportConversationStatus(selectedConversation.id, status)
       pushToast({
         tone: 'success',
-        title: 'Thread status updated',
+        title: t('admin.threadStatusUpdated'),
         message: status === 'closed'
-          ? 'Conversation closed and removed from the admin inbox.'
-          : `Conversation moved to ${status}.`,
+          ? t('admin.threadClosedHint')
+          : t('admin.threadMovedHint', { status }),
       })
       await refreshInbox(selectedConversation.id)
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not update thread status',
+        title: t('admin.loadingSupportThread'),
         message: getErrorMessage(error),
       })
     }
   }
 
   if (!profile) {
-    return <section className="page-shell">Loading admin workspace...</section>
+    return <section className="page-shell">{t('admin.loadingWorkspace')}</section>
   }
 
   return (
     <section className="page-shell admin-page">
       <div className="support-page-header team-hub-panel">
         <div>
-          <p className="eyebrow">Admin</p>
-          <h1>Admin panel</h1>
-          <span className="hero-text">Review future advanced registrations and reply to support chat requests from one workspace.</span>
+          <p className="eyebrow">{t('nav.admin')}</p>
+          <h1>{t('admin.title')}</h1>
+          <span className="hero-text">{t('admin.subtitle')}</span>
         </div>
 
         <div className="chip-row">
@@ -274,14 +277,14 @@ export function AdminPage() {
             className={`filter-chip ${activeTab === 'support' ? 'active' : ''}`}
             onClick={() => setActiveTab('support')}
           >
-            Support inbox
+            {t('admin.supportInbox')}
           </button>
           <button
             type="button"
             className={`filter-chip ${activeTab === 'registrations' ? 'active' : ''}`}
             onClick={() => setActiveTab('registrations')}
           >
-            Advanced registration
+            {t('admin.advancedRegistration')}
           </button>
         </div>
       </div>
@@ -291,11 +294,11 @@ export function AdminPage() {
           <SupportConversationList
             conversations={conversations}
             activeConversationId={selectedConversationId}
-            title={loadingInbox ? 'Loading...' : 'Support inbox'}
-            emptyMessage="Open and pending user threads will appear here. Closed threads stay visible only to the user."
+            title={loadingInbox ? t('common.loading') : t('admin.supportInbox')}
+            emptyMessage={t('admin.supportInboxEmpty')}
             onSelect={(conversation) => setSelectedConversationId(conversation.id)}
             renderMeta={(conversation) =>
-              `${conversation.user?.username ?? 'Unknown user'} · ${new Date(conversation.updated_at).toLocaleString()}`
+              `${conversation.user?.username ?? t('admin.unknownUser')} · ${formatDateTime(conversation.updated_at)}`
             }
           />
 
@@ -305,7 +308,7 @@ export function AdminPage() {
             currentUserId={profile?.id ?? ''}
             loading={sendingReply || loadingMessages}
             composerValue={reply}
-            composerPlaceholder={selectedConversation?.status === 'closed' ? 'Reopen the thread to send a reply.' : 'Reply as support admin...'}
+            composerPlaceholder={selectedConversation?.status === 'closed' ? t('admin.replyPlaceholderClosed') : t('admin.replyPlaceholderOpen')}
             composerDisabled={!selectedConversation || selectedConversation.status === 'closed'}
             headerActions={
               selectedConversation ? (
@@ -333,14 +336,14 @@ export function AdminPage() {
         <div className="team-hub-panel">
           <div className="map-library-header">
             <div>
-              <p className="eyebrow">Advanced registration</p>
-              <h3>Review queue</h3>
+              <p className="eyebrow">{t('admin.advancedRegistration')}</p>
+              <h3>{t('admin.reviewQueue')}</h3>
             </div>
           </div>
 
           {loadingRequests ? (
             <div className="empty-panel">
-              <strong>Loading registration requests...</strong>
+              <strong>{t('admin.loadingRequests')}</strong>
             </div>
           ) : requests.length ? (
             <div className="registration-review-list">
@@ -354,8 +357,8 @@ export function AdminPage() {
             </div>
           ) : (
             <div className="empty-panel">
-              <strong>No advanced registration requests yet</strong>
-              <span>All requests are processed. New submissions will appear here only while they are waiting for review.</span>
+              <strong>{t('admin.pendingRequestsEmpty')}</strong>
+              <span>{t('admin.pendingRequestsHint')}</span>
             </div>
           )}
         </div>

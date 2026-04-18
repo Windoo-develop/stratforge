@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { Modal } from '../components/ui/Modal'
 import { UserAvatar } from '../components/ui/UserAvatar'
 import { useAuth } from '../contexts/AuthContext'
+import { useLocale } from '../hooks/useLocale'
 import { useToast } from '../contexts/ToastContext'
 import { hasAdvancedAccess } from '../lib/advancedAccess'
 import {
@@ -23,6 +24,7 @@ import type { AdvancedRegistrationRequest, ProfileWithTeam } from '../types/doma
 
 function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: boolean }) {
   const { user, refreshProfile } = useAuth()
+  const { t } = useLocale()
   const { pushToast } = useToast()
   const [profileView, setProfileView] = useState<ProfileWithTeam | null>(null)
   const [pageLoading, setPageLoading] = useState(true)
@@ -142,11 +144,11 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
       setAvatarDraft(nextProfile.avatar_url ?? '')
       setAvatarFile(null)
       setAvatarPreviewUrl(null)
-      pushToast({ tone: 'success', title: 'Profile updated' })
+      pushToast({ tone: 'success', title: t('profile.profileUpdated') })
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not save profile',
+        title: t('profile.couldNotSaveProfile'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -168,7 +170,7 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
     try {
       const available = await isStandoffPlayerIdAvailable(advancedPlayerId, user.id)
       if (!available) {
-        throw new Error('This Standoff 2 ID is already linked to another account or is already waiting for review.')
+        throw new Error(t('profile.standoffIdTaken'))
       }
 
       const screenshotUrl = await uploadFileToBucketList(
@@ -187,8 +189,8 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
       await refreshAdvancedRequest()
       pushToast({
         tone: 'success',
-        title: 'Advanced registration submitted',
-        message: 'Your request is now waiting for admin review.',
+        title: t('profile.requestSubmitted'),
+        message: t('profile.requestSubmittedHint'),
       })
       setAdvancedModalOpen(false)
       setAdvancedPlayerId('')
@@ -196,7 +198,7 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not submit advanced registration',
+        title: t('profile.couldNotSubmitRequest'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -205,16 +207,16 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
   }
 
   if (pageLoading) {
-    return <div className="page-loading">Loading profile...</div>
+    return <div className="page-loading">{t('profile.loading')}</div>
   }
 
   if (!profileView) {
     return (
       <section className="profile-page">
         <div className="profile-card profile-empty">
-          <p className="eyebrow">Profile</p>
-          <h1>Profile not found</h1>
-          <p className="hero-text">We couldn&apos;t load that player card.</p>
+          <p className="eyebrow">{t('profile.title')}</p>
+          <h1>{t('profile.notFound')}</h1>
+          <p className="hero-text">{t('profile.notFoundHint')}</p>
         </div>
       </section>
     )
@@ -236,7 +238,7 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
           />
 
           <div className="profile-heading">
-            <p className="eyebrow">Player Profile</p>
+            <p className="eyebrow">{t('profile.playerProfile')}</p>
             <h1>{profileView.username}</h1>
             <div className="profile-meta-row">
               <span className="profile-user-code">#{profileView.user_code}</span>
@@ -247,76 +249,70 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
 
         <div className="profile-grid">
           <article className="profile-panel">
-            <h2>Bio</h2>
-            <p>{profileView.bio?.trim() ? profileView.bio : 'No bio added yet.'}</p>
+            <h2>{t('profile.bio')}</h2>
+            <p>{profileView.bio?.trim() ? profileView.bio : t('profile.noBio')}</p>
           </article>
 
           <article className="profile-panel">
-            <h2>Standoff 2 ID</h2>
-            <p>{profileView.standoff_player_id?.trim() ? profileView.standoff_player_id : 'None'}</p>
+            <h2>{t('profile.standoffId')}</h2>
+            <p>{profileView.standoff_player_id?.trim() ? profileView.standoff_player_id : t('common.none')}</p>
           </article>
 
           <article className="profile-panel">
-            <h2>Team</h2>
+            <h2>{t('profile.team')}</h2>
             {profileView.team_id && profileView.team ? (
               <div className="profile-team-row">
                 <span>{profileView.team.name}</span>
                 <Link to={`/team/${profileView.team.id}/roster`} className="ghost-action">
-                  Open team
+                  {t('common.openTeam')}
                 </Link>
               </div>
             ) : (
-              <span className="muted-label">None</span>
+              <span className="muted-label">{t('common.none')}</span>
             )}
           </article>
 
           {isSelf ? (
             <article className="profile-panel profile-panel-wide">
               <div className="profile-panel-header">
-                <h2>Advanced access</h2>
+                <h2>{t('profile.advancedAccess')}</h2>
                 {advancedApproved ? (
-                  <span className="support-status-pill status-approved">approved</span>
+                  <span className="support-status-pill status-approved">{t('profile.approved')}</span>
                 ) : advancedPending ? (
-                  <span className="support-status-pill status-pending">pending</span>
+                  <span className="support-status-pill status-pending">{t('profile.pending')}</span>
                 ) : advancedRejected ? (
-                  <span className="support-status-pill status-rejected">rejected</span>
+                  <span className="support-status-pill status-rejected">{t('profile.rejected')}</span>
                 ) : (
-                  <span className="muted-label">Not submitted</span>
+                  <span className="muted-label">{t('profile.notSubmitted')}</span>
                 )}
               </div>
 
               {advancedApproved ? (
                 <>
-                  <p>
-                    Your advanced registration is approved.
-                    {profileView.standoff_player_id?.trim() ? ` Verified Standoff 2 ID: ${profileView.standoff_player_id}.` : null}
-                  </p>
+                  <p>{`${t('profile.advancedApprovedText')}${profileView.standoff_player_id?.trim() ? ` ${t('profile.verifiedId', { value: profileView.standoff_player_id })}` : ''}`}</p>
                   {advancedEnabled ? (
                     <div className="profile-advanced-actions">
                       <Link to="/dm" className="primary-action">
-                        Open DM
+                        {t('profile.openDm')}
                       </Link>
                     </div>
                   ) : null}
                 </>
               ) : advancedPending ? (
                 <>
-                  <p>Your request is under review. The admin team will check your Standoff 2 ID and stats screenshot.</p>
+                  <p>{t('profile.advancedPendingText')}</p>
                   <div className="profile-advanced-actions">
                     <button type="button" className="ghost-action" disabled>
-                      Request under review
+                      {t('profile.requestUnderReview')}
                     </button>
                   </div>
                 </>
               ) : (
                 <>
-                  <p>
-                    Submit your Standoff 2 player ID and a screenshot of your in-game statistics. After admin approval,
-                    this account will be ready for expanded functionality.
-                  </p>
+                  <p>{t('profile.advancedIntro')}</p>
                   {advancedRejected && advancedRequest?.admin_notes ? (
                     <div className="profile-review-note">
-                      <strong>Admin note</strong>
+                      <strong>{t('profile.adminNote')}</strong>
                       <p>{advancedRequest.admin_notes}</p>
                     </div>
                   ) : null}
@@ -329,7 +325,7 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
                         setAdvancedModalOpen(true)
                       }}
                     >
-                      {advancedRejected ? 'Submit updated request' : 'Apply for advanced access'}
+                      {advancedRejected ? t('profile.submitUpdatedRequest') : t('profile.applyAdvanced')}
                     </button>
                   </div>
                 </>
@@ -341,13 +337,13 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
         {isSelf ? (
           <form className="profile-edit-form" onSubmit={handleSaveProfile}>
             <div className="profile-edit-header">
-              <h2>Edit profile</h2>
-              <span className="muted-label">Update your avatar and bio, then save.</span>
+              <h2>{t('profile.editProfile')}</h2>
+              <span className="muted-label">{t('profile.editHint')}</span>
             </div>
 
             <div className="profile-edit-grid">
               <label>
-                Avatar URL
+                {t('auth.avatarUrl')}
                 <input
                   value={avatarDraft}
                   onChange={(event) => setAvatarDraft(event.target.value)}
@@ -357,7 +353,7 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
               </label>
 
               <label>
-                Upload avatar
+                {t('profile.uploadAvatar')}
                 <input
                   type="file"
                   accept="image/*"
@@ -366,7 +362,7 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
               </label>
 
               <label className="profile-edit-bio">
-                Bio
+                {t('profile.bio')}
                 <textarea
                   value={bioDraft}
                   onChange={(event) => setBioDraft(event.target.value.slice(0, 200))}
@@ -379,7 +375,7 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
 
             <div className="profile-edit-actions">
               <button type="submit" className="primary-action" disabled={saving}>
-                {saving ? 'Saving...' : 'Save profile'}
+                {saving ? t('profile.savingProfile') : t('profile.saveProfile')}
               </button>
             </div>
           </form>
@@ -388,24 +384,24 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
 
       <Modal
         open={advancedModalOpen}
-        title="Advanced registration"
-        description="Send your Standoff 2 ID and a screenshot of your in-game stats for admin review."
+        title={t('profile.advancedRegistration')}
+        description={t('profile.advancedRegistrationDescription')}
         onClose={() => setAdvancedModalOpen(false)}
       >
         <form className="stack-form" onSubmit={handleSubmitAdvancedRequest}>
           <label>
-            Standoff 2 player ID
+            {t('profile.playerIdInput')}
             <input
               type="text"
               required
               value={advancedPlayerId}
               onChange={(event) => setAdvancedPlayerId(event.target.value)}
-              placeholder="Enter your in-game player ID"
+              placeholder={t('profile.playerIdPlaceholder')}
             />
           </label>
 
           <label>
-            Screenshot of in-game statistics
+            {t('profile.statsScreenshot')}
             <input
               type="file"
               required
@@ -416,10 +412,10 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
 
           <div className="modal-footer">
             <button type="button" className="ghost-action" onClick={() => setAdvancedModalOpen(false)} disabled={advancedSubmitting}>
-              Cancel
+              {t('common.cancel')}
             </button>
             <button type="submit" className="primary-action" disabled={advancedSubmitting}>
-              {advancedSubmitting ? 'Submitting...' : 'Send for review'}
+              {advancedSubmitting ? t('profile.submitting') : t('profile.sendForReview')}
             </button>
           </div>
         </form>
@@ -431,19 +427,20 @@ function ProfilePageContent({ targetId, isSelf }: { targetId: string; isSelf: bo
 export function ProfilePage() {
   const { profileId } = useParams()
   const { profile, user, loading } = useAuth()
+  const { t } = useLocale()
   const targetId = profileId ?? profile?.id ?? user?.id ?? null
 
   if (loading) {
-    return <div className="page-loading">Loading profile...</div>
+    return <div className="page-loading">{t('profile.loading')}</div>
   }
 
   if (!targetId) {
     return (
       <section className="profile-page">
         <div className="profile-card profile-empty">
-          <p className="eyebrow">Profile</p>
-          <h1>Profile not found</h1>
-          <p className="hero-text">We couldn&apos;t resolve a player for this route.</p>
+          <p className="eyebrow">{t('profile.title')}</p>
+          <h1>{t('profile.notFound')}</h1>
+          <p className="hero-text">{t('profile.routeNotFoundHint')}</p>
         </div>
       </section>
     )

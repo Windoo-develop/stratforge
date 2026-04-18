@@ -4,6 +4,7 @@ export type MapPoint = {
 }
 
 export type ToolSelection =
+  | { kind: 'cursor' }
   | { kind: 'player' }
   | { kind: 'utility'; utilityId: string }
   | { kind: 'path' }

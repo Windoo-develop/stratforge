@@ -14,6 +14,7 @@ import { SelectionPanel } from '../../components/SelectionPanel'
 import { ToolPalette } from '../../components/ToolPalette'
 import { MAPS } from '../../data/maps'
 import { UTILITY_ITEMS } from '../../data/utilities'
+import { useLocale } from '../../hooks/useLocale'
 import { clampNormalized, isEditableTarget, translateScenePath } from '../../utils/editorMath'
 import type {
   EditorSelection,
@@ -93,6 +94,8 @@ function buildEntityFromTool(tool: ToolSelection, point: MapPoint): MapEntity | 
 }
 
 export function MapEditorWorkspace() {
+  const { locale } = useLocale()
+  const isRu = locale === 'ru'
   const [activeMapId, setActiveMapId] = useState(MAPS[0].id)
   const [tool, setTool] = useState<ToolSelection>({
     kind: 'player',
@@ -101,7 +104,9 @@ export function MapEditorWorkspace() {
   const [selection, setSelection] = useState<EditorSelection>(null)
   const [zoom, setZoom] = useState(1)
   const [pathDraft, setPathDraft] = useState<PathDraft | null>(null)
-  const [statusMessage, setStatusMessage] = useState('Auto-save is active on this device.')
+  const [statusMessage, setStatusMessage] = useState(
+    isRu ? 'Автосохранение активно на этом устройстве.' : 'Auto-save is active on this device.',
+  )
   const importRef = useRef<HTMLInputElement | null>(null)
 
   const activeMap = useMemo(
@@ -132,6 +137,10 @@ export function MapEditorWorkspace() {
   }, [tool])
 
   useEffect(() => {
+    setStatusMessage(isRu ? 'Автосохранение активно на этом устройстве.' : 'Auto-save is active on this device.')
+  }, [isRu])
+
+  useEffect(() => {
     setSelection(null)
     setPathDraft(null)
   }, [activeMapId])
@@ -155,7 +164,11 @@ export function MapEditorWorkspace() {
       entities: [...scene.entities, entity],
     }))
     setSelection({ kind: 'entity', id: entity.id })
-    setStatusMessage(`${entity.kind === 'player' ? 'Player marker' : 'Utility'} added to ${activeMap.name}.`)
+    setStatusMessage(
+      isRu
+        ? `${entity.kind === 'player' ? 'Маркер игрока' : 'Утилита'} добавлен${entity.kind === 'player' ? '' : 'а'} на ${activeMap.name}.`
+        : `${entity.kind === 'player' ? 'Player marker' : 'Utility'} added to ${activeMap.name}.`,
+    )
   }
 
   const updateEntity = useCallback((id: string, updater: (entity: MapEntity) => MapEntity) => {
@@ -197,7 +210,7 @@ export function MapEditorWorkspace() {
       entities: [...scene.entities, duplicate],
     }))
     setSelection({ kind: 'entity', id: duplicate.id })
-    setStatusMessage('Selected element duplicated.')
+    setStatusMessage(isRu ? 'Выбранный объект дублирован.' : 'Selected element duplicated.')
   }
 
   const handleDeleteSelection = useCallback(() => {
@@ -218,7 +231,7 @@ export function MapEditorWorkspace() {
     }
 
     setSelection(null)
-    setStatusMessage('Selection removed.')
+    setStatusMessage(isRu ? 'Выделение удалено.' : 'Selection removed.')
   }, [patchActiveScene, selection])
 
   useEffect(() => {
@@ -229,14 +242,14 @@ export function MapEditorWorkspace() {
         if (pathDraft) {
           event.preventDefault()
           setPathDraft(null)
-          setStatusMessage('Route draft cancelled.')
+          setStatusMessage(isRu ? 'Черновик маршрута отменен.' : 'Route draft cancelled.')
           return
         }
 
         if (selection) {
           event.preventDefault()
           setSelection(null)
-          setStatusMessage('Selection cleared.')
+          setStatusMessage(isRu ? 'Выделение снято.' : 'Selection cleared.')
         }
 
         return
@@ -272,7 +285,7 @@ export function MapEditorWorkspace() {
           x: entity.x + deltaX,
           y: entity.y + deltaY,
         })
-        setStatusMessage('Selected object moved with keyboard.')
+        setStatusMessage(isRu ? 'Выбранный объект перемещен клавиатурой.' : 'Selected object moved with keyboard.')
         return
       }
 
@@ -280,7 +293,7 @@ export function MapEditorWorkspace() {
       if (!path) return
 
       handleMovePath(path.id, translateScenePath(path, deltaX, deltaY))
-      setStatusMessage('Selected route moved with keyboard.')
+      setStatusMessage(isRu ? 'Выбранный маршрут перемещен клавиатурой.' : 'Selected route moved with keyboard.')
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -299,7 +312,7 @@ export function MapEditorWorkspace() {
     patchActiveScene(() => createEmptyScene())
     setSelection(null)
     setPathDraft(null)
-    setStatusMessage(`${activeMap.name} scene cleared.`)
+    setStatusMessage(isRu ? `Сцена ${activeMap.name} очищена.` : `${activeMap.name} scene cleared.`)
   }
 
   const handleExport = () => {
@@ -315,10 +328,10 @@ export function MapEditorWorkspace() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `stratbook-${activeMap.id}.json`
+    link.download = `stratforge-${activeMap.id}.json`
     link.click()
     URL.revokeObjectURL(url)
-    setStatusMessage(`JSON export created for ${activeMap.name}.`)
+    setStatusMessage(isRu ? `JSON-экспорт создан для ${activeMap.name}.` : `JSON export created for ${activeMap.name}.`)
   }
 
   const handleImport = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -329,7 +342,7 @@ export function MapEditorWorkspace() {
       const content = await file.text()
       const parsed = JSON.parse(content) as { mapId?: string; scene?: SceneState }
       if (!parsed.mapId || !parsed.scene) {
-        throw new Error('Invalid scene payload')
+        throw new Error(isRu ? 'Некорректные данные сцены' : 'Invalid scene payload')
       }
 
       setScenes((current) => ({
@@ -346,9 +359,17 @@ export function MapEditorWorkspace() {
 
       setSelection(null)
       setPathDraft(null)
-      setStatusMessage(`Scene imported${importedMap ? ` for ${importedMap.name}` : ''}.`)
+      setStatusMessage(
+        isRu
+          ? `Сцена импортирована${importedMap ? ` для ${importedMap.name}` : ''}.`
+          : `Scene imported${importedMap ? ` for ${importedMap.name}` : ''}.`,
+      )
     } catch {
-      setStatusMessage('Import failed. Use a JSON exported by this app.')
+      setStatusMessage(
+        isRu
+          ? 'Импорт не удался. Используйте JSON, экспортированный этим приложением.'
+          : 'Import failed. Use a JSON exported by this app.',
+      )
     } finally {
       event.target.value = ''
     }
@@ -361,28 +382,27 @@ export function MapEditorWorkspace() {
 
       <section className="hero-panel">
         <div className="hero-copy">
-          <p className="eyebrow">CS2 Tactical Board</p>
-          <h2>Choose a map by background, build on the radar.</h2>
+          <p className="eyebrow">{isRu ? 'Тактическая доска' : 'CS2 Tactical Board'}</p>
+          <h2>{isRu ? 'Выбирай карту по фону, а собирай тактику на радаре.' : 'Choose a map by background, build on the radar.'}</h2>
           <p className="hero-text">
-            The library below uses preview backgrounds, while the editor itself works on the radar
-            image. Utilities and player markers live as separate layers, so the architecture is ready
-            for more maps and richer game logic. Select any object and use Delete or arrow keys for
-            fast editing.
+            {isRu
+              ? 'Ниже библиотека карт с превью-фонами, а сам редактор работает уже на радаре. Утилиты и маркеры игроков живут отдельными слоями, поэтому архитектура готова к новым картам и более богатой игровой логике. Выбирай любой объект и используй Delete или стрелки для быстрого редактирования.'
+              : 'The library below uses preview backgrounds, while the editor itself works on the radar image. Utilities and player markers live as separate layers, so the architecture is ready for more maps and richer game logic. Select any object and use Delete or arrow keys for fast editing.'}
           </p>
         </div>
 
         <div className="hero-meta">
           <div className="stat-card">
             <span>{MAPS.length}</span>
-            <p>maps wired into the asset system</p>
+            <p>{isRu ? 'карт подключено к системе ассетов' : 'maps wired into the asset system'}</p>
           </div>
           <div className="stat-card">
             <span>{UTILITY_ITEMS.length}</span>
-            <p>utility icons ready for the editor</p>
+            <p>{isRu ? 'иконок утилит готовы для редактора' : 'utility icons ready for the editor'}</p>
           </div>
           <div className="stat-card">
             <span>{activeScene.entities.length + activeScene.paths.length}</span>
-            <p>objects currently placed on {activeMap.name}</p>
+            <p>{isRu ? `объектов сейчас размещено на ${activeMap.name}` : `objects currently placed on ${activeMap.name}`}</p>
           </div>
         </div>
       </section>
@@ -393,19 +413,19 @@ export function MapEditorWorkspace() {
         <section className="board-panel">
           <div className="board-panel-header">
             <div>
-              <p className="eyebrow">Radar Workspace</p>
+              <p className="eyebrow">{isRu ? 'Радар-воркспейс' : 'Radar Workspace'}</p>
               <h3>{activeMap.name}</h3>
             </div>
 
             <div className="topbar-actions">
               <button type="button" className="ghost-action" onClick={handleClearScene}>
-                Clear map
+                {isRu ? 'Очистить карту' : 'Clear map'}
               </button>
               <button type="button" className="ghost-action" onClick={handleExport}>
-                Export JSON
+                {isRu ? 'Экспорт JSON' : 'Export JSON'}
               </button>
               <button type="button" className="primary-action" onClick={() => importRef.current?.click()}>
-                Import JSON
+                {isRu ? 'Импорт JSON' : 'Import JSON'}
               </button>
               <input
                 ref={importRef}
@@ -447,13 +467,19 @@ export function MapEditorWorkspace() {
             onPlacePoint={handlePlacePoint}
             onMoveEntity={handleMoveEntity}
             onMovePath={handleMovePath}
+            onRotateEntity={(id, rotation) => {
+              updateEntity(id, (entity) => ({
+                ...entity,
+                rotation,
+              }))
+            }}
             onSelectEntity={(id) => setSelection({ kind: 'entity', id })}
             onSelectPath={(id) => setSelection({ kind: 'path', id })}
             onClearSelection={() => setSelection(null)}
             onStartPathDraft={(point) => {
               setSelection(null)
               setPathDraft({ start: point, end: point })
-              setStatusMessage('Drawing route...')
+              setStatusMessage(isRu ? 'Рисуем маршрут...' : 'Drawing route...')
             }}
             onUpdatePathDraft={(point) => {
               setPathDraft((current) => (current ? { ...current, end: point } : current))
@@ -467,7 +493,11 @@ export function MapEditorWorkspace() {
                 const distance = Math.hypot(dx, dy)
 
                 if (distance < 0.02) {
-                  setStatusMessage('Route cancelled: drag farther to create an arrow.')
+                  setStatusMessage(
+                    isRu
+                      ? 'Маршрут отменен: протяни дальше, чтобы создать стрелку.'
+                      : 'Route cancelled: drag farther to create an arrow.',
+                  )
                   return null
                 }
 
@@ -485,7 +515,7 @@ export function MapEditorWorkspace() {
                   paths: [...scene.paths, path],
                 }))
                 setSelection({ kind: 'path', id: path.id })
-                setStatusMessage('Route created.')
+                setStatusMessage(isRu ? 'Маршрут создан.' : 'Route created.')
                 return null
               })
             }}
@@ -501,7 +531,7 @@ export function MapEditorWorkspace() {
             pathDraftActive={Boolean(pathDraft)}
             onCancelPathDraft={() => {
               setPathDraft(null)
-              setStatusMessage('Route draft cancelled.')
+              setStatusMessage(isRu ? 'Черновик маршрута отменен.' : 'Route draft cancelled.')
             }}
           />
 

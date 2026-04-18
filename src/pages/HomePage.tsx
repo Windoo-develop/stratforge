@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Modal } from '../components/ui/Modal'
 import { PremiumHero } from '../components/home/PremiumHero'
 import { useAuth } from '../contexts/AuthContext'
+import { useLocale } from '../hooks/useLocale'
 import { useToast } from '../contexts/ToastContext'
 import { MapEditorWorkspace } from '../features/editor/MapEditorWorkspace'
 import { getErrorMessage } from '../lib/errors'
@@ -28,6 +29,7 @@ function CreateTeamModal({
   const [password, setPassword] = useState('')
   const [avatar, setAvatar] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
+  const { t } = useLocale()
   const { pushToast } = useToast()
   const { user } = useAuth()
 
@@ -57,7 +59,7 @@ function CreateTeamModal({
       }
 
       const teamId = await createTeam({ name, password, avatarUrl })
-      pushToast({ tone: 'success', title: 'Team created' })
+      pushToast({ tone: 'success', title: t('home.teamCreated') })
       onCreated(teamId)
       onClose()
       setName('')
@@ -66,7 +68,7 @@ function CreateTeamModal({
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Unable to create team',
+        title: t('home.couldNotCreateTeam'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -78,12 +80,12 @@ function CreateTeamModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Create team"
-      description="Create a private team with avatar and password-protected access."
+      title={t('home.createTeamTitle')}
+      description={t('home.createTeamDescription')}
     >
       <form className="stack-form" onSubmit={handleSubmit} autoComplete="off">
         <label>
-          Team name
+          {t('home.teamName')}
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -95,7 +97,7 @@ function CreateTeamModal({
           />
         </label>
         <label>
-          Team password
+          {t('home.teamPassword')}
           <input
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -108,16 +110,16 @@ function CreateTeamModal({
           />
         </label>
         <label>
-          Team avatar
+          {t('home.teamAvatar')}
           <input type="file" accept="image/*" onChange={(event) => setAvatar(event.target.files?.[0] ?? null)} />
         </label>
 
         <div className="modal-footer">
           <button type="button" className="ghost-action" onClick={onClose} disabled={loading}>
-            Cancel
+            {t('common.cancel')}
           </button>
           <button type="submit" className="primary-action" disabled={loading}>
-            {loading ? 'Creating...' : 'Create team'}
+            {loading ? t('home.creatingTeam') : t('home.createTeam')}
           </button>
         </div>
       </form>
@@ -137,6 +139,7 @@ function JoinTeamModal({
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const { t } = useLocale()
   const { pushToast } = useToast()
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -145,7 +148,7 @@ function JoinTeamModal({
 
     try {
       const teamId = await joinTeam({ name, password })
-      pushToast({ tone: 'success', title: 'Joined team' })
+      pushToast({ tone: 'success', title: t('home.joinedTeam') })
       onJoined(teamId)
       onClose()
       setName('')
@@ -153,7 +156,7 @@ function JoinTeamModal({
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Unable to join team',
+        title: t('home.couldNotJoinTeam'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -165,12 +168,12 @@ function JoinTeamModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Join team"
-      description="Enter the team name and password provided by the creator."
+      title={t('home.joinTeamTitle')}
+      description={t('home.joinTeamDescription')}
     >
       <form className="stack-form" onSubmit={handleSubmit} autoComplete="off">
         <label>
-          Team name
+          {t('home.teamName')}
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -182,7 +185,7 @@ function JoinTeamModal({
           />
         </label>
         <label>
-          Password
+          {t('auth.password')}
           <input
             value={password}
             onChange={(event) => setPassword(event.target.value)}
@@ -196,10 +199,10 @@ function JoinTeamModal({
 
         <div className="modal-footer">
           <button type="button" className="ghost-action" onClick={onClose} disabled={loading}>
-            Cancel
+            {t('common.cancel')}
           </button>
           <button type="submit" className="primary-action" disabled={loading}>
-            {loading ? 'Joining...' : 'Join team'}
+            {loading ? t('home.joiningTeam') : t('home.joinTeam')}
           </button>
         </div>
       </form>
@@ -217,18 +220,19 @@ function TeamHub({
   onRefresh: () => Promise<void>
 }) {
   const navigate = useNavigate()
+  const { t } = useLocale()
   const { pushToast } = useToast()
 
   const handleAcceptInvite = async (inviteId: string) => {
     try {
       const teamId = await acceptInvite(inviteId)
-      pushToast({ tone: 'success', title: 'Invite accepted' })
+      pushToast({ tone: 'success', title: t('home.inviteAccepted') })
       await onRefresh()
       navigate(`/team/${teamId}/roster`)
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not accept invite',
+        title: t('home.inviteFailed'),
         message: getErrorMessage(error),
       })
     }
@@ -239,8 +243,8 @@ function TeamHub({
       <div className="team-hub-panel">
         <div className="map-library-header">
           <div>
-            <p className="eyebrow">Teams</p>
-            <h3>My team dashboards</h3>
+            <p className="eyebrow">{t('home.teams')}</p>
+            <h3>{t('home.myTeamDashboards')}</h3>
           </div>
         </div>
 
@@ -251,14 +255,14 @@ function TeamHub({
                 {team.avatar_url ? <img src={team.avatar_url} alt="" className="team-avatar" /> : <div className="team-avatar fallback">{team.name.slice(0, 2).toUpperCase()}</div>}
                 <div className="team-card-copy">
                   <strong>{team.name}</strong>
-                  <span>Open roster, line-ups and strats</span>
+                  <span>{t('home.openRoster')}</span>
                 </div>
               </Link>
             ))
           ) : (
             <div className="empty-panel">
-              <strong>No teams yet</strong>
-              <span>Create one or join an existing squad to unlock shared lineups and strats.</span>
+              <strong>{t('home.noTeams')}</strong>
+              <span>{t('home.noTeamsHint')}</span>
             </div>
           )}
         </div>
@@ -267,8 +271,8 @@ function TeamHub({
       <div className="team-hub-panel">
         <div className="map-library-header">
           <div>
-            <p className="eyebrow">Invites</p>
-            <h3>Pending team invites</h3>
+            <p className="eyebrow">{t('home.invites')}</p>
+            <h3>{t('home.pendingInvites')}</h3>
           </div>
         </div>
 
@@ -277,18 +281,18 @@ function TeamHub({
             invites.map((invite) => (
               <div key={invite.id} className="invite-card">
                 <div>
-                  <strong>{invite.team?.name ?? 'Team invite'}</strong>
-                  <span>Pending invite for your user code</span>
+                  <strong>{invite.team?.name ?? t('home.joinTeamTitle')}</strong>
+                  <span>{t('home.pendingInviteForCode')}</span>
                 </div>
                 <button type="button" className="primary-action" onClick={() => void handleAcceptInvite(invite.id)}>
-                  Accept
+                  {t('common.accept')}
                 </button>
               </div>
             ))
           ) : (
             <div className="empty-panel">
-              <strong>No invites right now</strong>
-              <span>When a creator invites your user code, it will show up here.</span>
+              <strong>{t('home.noInvites')}</strong>
+              <span>{t('home.noInvitesHint')}</span>
             </div>
           )}
         </div>
@@ -299,6 +303,7 @@ function TeamHub({
 
 export function HomePage() {
   const { profile, refreshProfile, user } = useAuth()
+  const { t } = useLocale()
   const { pushToast } = useToast()
   const [teams, setTeams] = useState<Team[]>([])
   const [invites, setInvites] = useState<TeamInvite[]>([])
@@ -325,7 +330,7 @@ export function HomePage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not load teams',
+        title: t('home.couldNotLoadTeams'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -364,37 +369,34 @@ export function HomePage() {
 
       <section className="home-actions">
         <div className="hero-copy">
-          <p className="eyebrow">Team Features</p>
-          <h2>From blueprint hero to live team workflows.</h2>
-          <p className="hero-text">
-            Authentication, team dashboards, roster permissions, lineup libraries and strat notes now
-            wrap around the shared Sandstone tactical board.
-          </p>
+          <p className="eyebrow">{t('home.teamFeatures')}</p>
+          <h2>{t('home.teamFeaturesTitle')}</h2>
+          <p className="hero-text">{t('home.teamFeaturesText')}</p>
         </div>
 
         <div className="topbar-actions">
           {user ? (
             hasExistingTeam && primaryTeam ? (
               <Link to={`/team/${primaryTeam.id}/roster`} className="primary-action">
-                Open team
+                {t('common.openTeam')}
               </Link>
             ) : (
               <>
                 <button type="button" className="ghost-action" onClick={() => setJoinOpen(true)}>
-                  Join team
+                  {t('home.joinTeam')}
                 </button>
                 <button type="button" className="primary-action" onClick={() => setCreateOpen(true)}>
-                  Create team
+                  {t('home.createTeam')}
                 </button>
               </>
             )
           ) : (
             <>
               <Link to="/login" className="ghost-action">
-                Login to join teams
+                {t('home.loginToJoin')}
               </Link>
               <Link to="/register" className="primary-action">
-                Register
+                {t('home.register')}
               </Link>
             </>
           )}
@@ -404,7 +406,7 @@ export function HomePage() {
       {user && profile ? (
         loading ? (
           <div className="team-hub-panel">
-            <strong>Loading teams...</strong>
+            <strong>{t('home.loadingTeams')}</strong>
           </div>
         ) : (
           <TeamHub teams={teams} invites={invites} onRefresh={refreshHomeData} />

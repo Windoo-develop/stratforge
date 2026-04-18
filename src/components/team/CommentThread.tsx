@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { UserAvatar } from '../ui/UserAvatar'
+import { useLocale } from '../../hooks/useLocale'
 import type { LineupComment, StratComment } from '../../types/domain'
 
 type TeamComment = LineupComment | StratComment
@@ -27,6 +28,8 @@ export function CommentThread({
   onSubmit,
   onDelete,
 }: CommentThreadProps) {
+  const { locale, formatDateTime } = useLocale()
+  const isRu = locale === 'ru'
   const [draft, setDraft] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -61,7 +64,7 @@ export function CommentThread({
     <section className="comment-thread">
       <div className="comment-thread-header">
         <h4>{title}</h4>
-        <span>{comments.length} total</span>
+        <span>{comments.length} {isRu ? 'всего' : 'total'}</span>
       </div>
 
       <div className="comment-compose">
@@ -80,14 +83,14 @@ export function CommentThread({
             onClick={() => void handleSubmit()}
             disabled={submitting || !draft.trim() || loading}
           >
-            {submitting ? 'Posting...' : submitLabel}
+            {submitting ? (isRu ? 'Публикуем...' : 'Posting...') : submitLabel}
           </button>
         </div>
       </div>
 
       <div className="comment-list">
         {loading ? (
-          <div className="comment-empty">Loading comments...</div>
+          <div className="comment-empty">{isRu ? 'Загружаем комментарии...' : 'Loading comments...'}</div>
         ) : comments.length ? (
           comments.map((comment) => {
             const canDelete = canModerate || comment.author_id === currentUserId
@@ -97,13 +100,13 @@ export function CommentThread({
                 <div className="comment-card-header">
                   <div className="comment-author">
                     <UserAvatar
-                      username={comment.author?.username ?? 'Unknown'}
+                      username={comment.author?.username ?? (isRu ? 'Неизвестно' : 'Unknown')}
                       avatarUrl={comment.author?.avatar_url}
                       size="sm"
                     />
                     <div>
-                      <strong>{comment.author?.username ?? 'Unknown player'}</strong>
-                      <span>{new Date(comment.created_at).toLocaleString()}</span>
+                      <strong>{comment.author?.username ?? (isRu ? 'Неизвестный игрок' : 'Unknown player')}</strong>
+                      <span>{formatDateTime(comment.created_at)}</span>
                     </div>
                   </div>
 
@@ -114,7 +117,7 @@ export function CommentThread({
                       onClick={() => void handleDelete(comment.id)}
                       disabled={deletingId === comment.id}
                     >
-                      {deletingId === comment.id ? 'Deleting...' : 'Delete'}
+                      {deletingId === comment.id ? (isRu ? 'Удаляем...' : 'Deleting...') : isRu ? 'Удалить' : 'Delete'}
                     </button>
                   ) : null}
                 </div>
@@ -124,7 +127,9 @@ export function CommentThread({
             )
           })
         ) : (
-          <div className="comment-empty">No comments yet. Start the discussion here.</div>
+          <div className="comment-empty">
+            {isRu ? 'Комментариев пока нет. Начните обсуждение здесь.' : 'No comments yet. Start the discussion here.'}
+          </div>
         )}
       </div>
     </section>

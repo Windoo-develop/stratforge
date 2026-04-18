@@ -391,21 +391,35 @@
   pointer-events: none;
 }
 
+.board-path.cursor-enabled {
+  pointer-events: stroke;
+  cursor: grab;
+}
+
+.board-path.cursor-enabled:active {
+  cursor: grabbing;
+}
+
 .board-path.selected {
-  stroke-width: 0.52;
+  stroke-width: 0.6;
   filter: drop-shadow(0 0 2px rgba(111, 255, 233, 0.34));
 }
 
 .board-path-hit {
   fill: none;
   stroke: transparent;
-  stroke-width: 2.4;
+  stroke-width: 4.8;
   pointer-events: stroke;
+  cursor: pointer;
+}
+
+.board-path-hit.selected,
+.board-path-hit.cursor-enabled {
   cursor: grab;
 }
 
-.board-path-hit.selected {
-  cursor: grab;
+.board-path-hit.cursor-enabled:active {
+  cursor: grabbing;
 }
 
 .board-path-hit:focus-visible {
@@ -424,6 +438,17 @@
   stroke-width: 0.28;
 }
 
+.path-anchor-handle {
+  fill: rgba(8, 15, 28, 0.96);
+  stroke: rgba(111, 255, 233, 0.84);
+  stroke-width: 0.3;
+  cursor: grab;
+}
+
+.path-anchor-handle:active {
+  cursor: grabbing;
+}
+
 .entity-chip {
   position: absolute;
   translate: -50% -50%;
@@ -437,7 +462,15 @@
   user-select: none;
   touch-action: none;
   pointer-events: auto;
+  cursor: pointer;
+}
+
+.entity-chip.cursor-enabled {
   cursor: grab;
+}
+
+.entity-chip.cursor-enabled:active {
+  cursor: grabbing;
 }
 
 .entity-chip.selected {
@@ -485,6 +518,30 @@
   height: 100%;
   object-fit: contain;
   pointer-events: none;
+}
+
+.entity-rotate-handle {
+  position: absolute;
+  translate: -50% -50%;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(111, 255, 233, 0.42);
+  background: rgba(8, 15, 28, 0.92);
+  color: #6fffe9;
+  font-size: 0.84rem;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.24);
+  cursor: grab;
+  z-index: 2;
+}
+
+.entity-rotate-handle:active {
+  cursor: grabbing;
 }
 
 .board-hint {
@@ -535,6 +592,10 @@
   margin-top: 12px;
 }
 
+.tool-grid-top {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .tool-button {
   display: flex;
   align-items: center;
@@ -547,6 +608,15 @@
   border: 1px solid transparent;
 }
 
+.tool-button-compact {
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  min-height: 116px;
+  padding: 14px 10px;
+  text-align: center;
+}
+
 .tool-button.active,
 .utility-button.active {
   border-color: rgba(111, 255, 233, 0.42);
@@ -554,8 +624,8 @@
 }
 
 .tool-swatch {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 14px;
   display: inline-flex;
   align-items: center;
@@ -569,10 +639,33 @@
   background: rgba(248, 250, 252, 0.08);
 }
 
-.tool-swatch-player img {
-  width: 100%;
-  height: 100%;
+.tool-swatch-cursor {
+  background: rgba(248, 250, 252, 0.08);
+}
+
+.tool-swatch-cursor img {
+  width: 18px;
+  height: 18px;
   object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.tool-swatch-player img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.tool-swatch-route {
+  background: linear-gradient(135deg, rgba(111, 255, 233, 0.14), rgba(14, 165, 233, 0.18));
+}
+
+.tool-swatch-route img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 
 .tool-copy strong,
@@ -584,6 +677,16 @@
 .tool-copy small,
 .utility-copy small {
   color: var(--text-muted);
+}
+
+.tool-button-compact .tool-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.tool-button-compact .tool-copy small {
+  font-size: 0.76rem;
+  line-height: 1.3;
 }
 
 .mini-action {
@@ -750,6 +853,24 @@
   .utility-grid,
   .danger-row {
     grid-template-columns: 1fr;
+  }
+
+  .tool-grid-top {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tool-button-compact {
+    min-height: 98px;
+    gap: 8px;
+    padding: 12px 8px;
+  }
+
+  .tool-button-compact .tool-copy strong {
+    font-size: 0.82rem;
+  }
+
+  .tool-button-compact .tool-copy small {
+    font-size: 0.68rem;
   }
 
   .zoom-panel {
@@ -1799,6 +1920,7 @@ button.dm-lobby-card {
   display: grid;
   place-items: center;
   padding: 20px;
+  overflow-y: auto;
   background: rgba(2, 6, 23, 0.68);
   backdrop-filter: blur(12px);
 }
@@ -1806,7 +1928,9 @@ button.dm-lobby-card {
 .modal-card {
   width: min(100%, 720px);
   max-height: min(90svh, 920px);
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   padding: 22px;
   background:
     radial-gradient(circle at top left, rgba(34, 211, 238, 0.08), transparent 34%),
@@ -1844,6 +1968,7 @@ button.dm-lobby-card {
   margin-bottom: 18px;
   padding-bottom: 14px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  flex: 0 0 auto;
 }
 
 .modal-heading {
@@ -1865,11 +1990,17 @@ button.dm-lobby-card {
 .modal-body {
   display: grid;
   gap: 18px;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-footer {
   justify-content: flex-end;
   margin-top: 16px;
+  flex: 0 0 auto;
 }
 
 .icon-button {
@@ -2058,6 +2189,10 @@ button.dm-lobby-card {
 .permission-toggle img,
 .icon-choice img,
 .lineup-throw-icons img {
+  filter: brightness(0) invert(1);
+}
+
+.grenade-badge img {
   filter: brightness(0) invert(1);
 }
 

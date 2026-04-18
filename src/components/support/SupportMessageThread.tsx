@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { SupportConversation, SupportMessage } from '../../types/domain'
+import { useLocale } from '../../hooks/useLocale'
 import { UserAvatar } from '../ui/UserAvatar'
 
 export function SupportMessageThread({
@@ -25,12 +26,14 @@ export function SupportMessageThread({
   onComposerChange: (value: string) => void
   onSend: () => Promise<void> | void
 }) {
+  const { t, formatDateTime } = useLocale()
+
   if (!conversation) {
     return (
       <section className="support-thread-panel">
         <div className="empty-panel">
-          <strong>No conversation selected</strong>
-          <span>Pick an existing thread or start a new one to continue.</span>
+          <strong>{t('support.noConversationSelected')}</strong>
+          <span>{t('support.noConversationHint')}</span>
         </div>
       </section>
     )
@@ -40,7 +43,7 @@ export function SupportMessageThread({
     <section className="support-thread-panel">
       <div className="support-thread-header">
         <div>
-          <p className="eyebrow">Support thread</p>
+          <p className="eyebrow">{t('support.thread')}</p>
           <h2>{conversation.subject}</h2>
         </div>
         <div className="inline-actions">
@@ -58,13 +61,13 @@ export function SupportMessageThread({
               <article key={message.id} className={`support-message-card ${mine ? 'mine' : ''} ${message.is_admin ? 'admin' : ''}`}>
                 <div className="support-message-author">
                   <UserAvatar
-                    username={message.author?.username ?? (message.is_admin ? 'Admin' : 'Player')}
+                    username={message.author?.username ?? (message.is_admin ? t('support.adminLabel') : t('support.playerLabel'))}
                     avatarUrl={message.author?.avatar_url ?? null}
                     size="sm"
                   />
                   <div>
-                    <strong>{message.author?.username ?? (message.is_admin ? 'Support admin' : 'Player')}</strong>
-                    <span>{new Date(message.created_at).toLocaleString()}</span>
+                    <strong>{message.author?.username ?? (message.is_admin ? t('support.adminLabel') : t('support.playerLabel'))}</strong>
+                    <span>{formatDateTime(message.created_at)}</span>
                   </div>
                 </div>
                 <p>{message.body}</p>
@@ -73,8 +76,8 @@ export function SupportMessageThread({
           })
         ) : (
           <div className="empty-panel">
-            <strong>No messages yet</strong>
-            <span>The thread is ready. Send the first reply below.</span>
+            <strong>{t('support.noMessages')}</strong>
+            <span>{t('support.noMessagesHint')}</span>
           </div>
         )}
       </div>
@@ -96,11 +99,11 @@ export function SupportMessageThread({
         <div className="comment-compose-footer">
           <span className="form-hint">
             {conversation.status === 'closed'
-              ? 'This thread is closed. Reopen it from the admin panel to continue.'
-              : 'Keep replies short and actionable so the thread stays easy to scan.'}
+              ? t('support.closedHint')
+              : t('support.openHint')}
           </span>
           <button type="submit" className="primary-action" disabled={composerDisabled || loading || !composerValue.trim()}>
-            {loading ? 'Sending...' : 'Send message'}
+            {loading ? t('support.sending') : t('support.sendMessage')}
           </button>
         </div>
       </form>

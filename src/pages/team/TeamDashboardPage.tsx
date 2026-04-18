@@ -12,6 +12,7 @@ import { GRENADE_BADGES, SIDE_BADGES, THROW_JUMP_OPTIONS, THROW_MOVEMENT_OPTIONS
 import { canAddLineups, canAddStrats, canEditOwnContent, isTeamCreator } from '../../data/teamHelpers'
 import { useAuth } from '../../contexts/AuthContext'
 import { useToast } from '../../contexts/ToastContext'
+import { useLocale } from '../../hooks/useLocale'
 import { getErrorMessage } from '../../lib/errors'
 import { exportNodeAsPng } from '../../lib/shareCard'
 import { buildStoragePath, uploadFileToBucket } from '../../lib/storage'
@@ -93,6 +94,59 @@ type StratFormState = {
   training_checklist: StratTrainingChecklistItem[]
 }
 
+type SupportedLocale = 'en' | 'ru'
+
+const ROLE_PRESET_LABELS: Record<SupportedLocale, Record<TeamRolePreset, string>> = {
+  en: TEAM_ROLE_PRESET_LABELS,
+  ru: {
+    igl: 'IGL',
+    entry: 'Энтри',
+    support: 'Саппорт',
+    lurker: 'Луркер',
+    awp: 'AWP',
+  },
+}
+
+const STRAT_TYPE_LABELS: Record<SupportedLocale, Record<'buyround' | 'force' | 'pistol', string>> = {
+  en: {
+    buyround: 'buyround',
+    force: 'force',
+    pistol: 'pistol',
+  },
+  ru: {
+    buyround: 'закуп',
+    force: 'форс',
+    pistol: 'пистолеты',
+  },
+}
+
+const GRENADE_TYPE_LABELS: Record<SupportedLocale, Record<Lineup['grenade_type'], string>> = {
+  en: {
+    smoke: 'Smoke',
+    flash: 'Flash',
+    grenade: 'HE',
+    molotov: 'Molotov',
+  },
+  ru: {
+    smoke: 'Смок',
+    flash: 'Флеш',
+    grenade: 'HE',
+    molotov: 'Молотов',
+  },
+}
+
+function getRolePresetLabel(locale: SupportedLocale, rolePreset: TeamRolePreset) {
+  return ROLE_PRESET_LABELS[locale][rolePreset]
+}
+
+function getStratTypeLabel(locale: SupportedLocale, type: 'buyround' | 'force' | 'pistol') {
+  return STRAT_TYPE_LABELS[locale][type]
+}
+
+function getGrenadeTypeLabel(locale: SupportedLocale, type: Lineup['grenade_type']) {
+  return GRENADE_TYPE_LABELS[locale][type]
+}
+
 function createEmptyScene(): SceneState {
   return { entities: [], paths: [] }
 }
@@ -137,11 +191,17 @@ function AnchorPills({
 }
 
 function RolePresetBadge({ rolePreset }: { rolePreset: TeamRolePreset | null }) {
+  const { locale, t } = useLocale()
+
   if (!rolePreset) {
-    return <span className="muted-label">None</span>
+    return <span className="muted-label">{t('common.none')}</span>
   }
 
-  return <span className={`role-preset-badge role-preset-${rolePreset}`}>{TEAM_ROLE_PRESET_LABELS[rolePreset]}</span>
+  return (
+    <span className={`role-preset-badge role-preset-${rolePreset}`}>
+      {getRolePresetLabel(locale, rolePreset)}
+    </span>
+  )
 }
 
 function FavoriteButton({
@@ -153,17 +213,20 @@ function FavoriteButton({
   onClick: () => void
   withLabel?: boolean
 }) {
+  const { locale } = useLocale()
+  const isRu = locale === 'ru'
+
   return (
     <button
       type="button"
       className={`favorite-toggle ${active ? 'active' : ''} ${withLabel ? 'with-label' : ''}`}
-      aria-label={active ? 'Remove from favorites' : 'Add to favorites'}
+      aria-label={active ? (isRu ? 'Убрать из избранного' : 'Remove from favorites') : isRu ? 'Добавить в избранное' : 'Add to favorites'}
       aria-pressed={active}
-      title={active ? 'Saved to favorites' : 'Save to favorites'}
+      title={active ? (isRu ? 'Сохранено в избранное' : 'Saved to favorites') : isRu ? 'Сохранить в избранное' : 'Save to favorites'}
       onClick={onClick}
     >
       <span aria-hidden="true">★</span>
-      {withLabel ? <span>{active ? 'Favorited' : 'Add to favorites'}</span> : null}
+      {withLabel ? <span>{active ? (isRu ? 'В избранном' : 'Favorited') : isRu ? 'Добавить в избранное' : 'Add to favorites'}</span> : null}
     </button>
   )
 }
@@ -179,11 +242,12 @@ function SideBadge({ side }: { side: 'T' | 'CT' }) {
 }
 
 function GrenadeBadge({ type }: { type: Lineup['grenade_type'] }) {
+  const { locale } = useLocale()
   const config = GRENADE_BADGES[type]
   return (
     <span className={`pill-badge grenade-badge ${config.className}`}>
       <img src={config.icon} alt="" />
-      {config.label}
+      {getGrenadeTypeLabel(locale, type)}
     </span>
   )
 }
@@ -243,6 +307,8 @@ function LineupModal({
   })
   const [files, setFiles] = useState<File[]>([])
   const mapAnchors = getMapAnchors(map.id)
+  const { locale, t } = useLocale()
+  const isRu = locale === 'ru'
 
   const toggleAnchor = (anchorId: string) => {
     setForm((current) => {
@@ -257,7 +323,7 @@ function LineupModal({
   }
 
   return (
-    <Modal open={open} title={initial ? 'Edit lineup' : 'Add lineup'} onClose={onClose}>
+    <Modal open={open} title={initial ? (isRu ? 'Редактировать лайнап' : 'Edit lineup') : isRu ? 'Добавить лайнап' : 'Add lineup'} onClose={onClose}>
       <form
         className="stack-form"
         onSubmit={(event) => {
@@ -266,7 +332,7 @@ function LineupModal({
         }}
       >
         <label>
-          Name
+          {isRu ? 'Название' : 'Name'}
           <input
             value={form.name}
             onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
@@ -276,7 +342,7 @@ function LineupModal({
         </label>
 
         <label>
-          Description
+          {isRu ? 'Описание' : 'Description'}
           <textarea
             value={form.description}
             onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
@@ -285,7 +351,7 @@ function LineupModal({
         </label>
 
         <label>
-          Video URL
+          {isRu ? 'Ссылка на видео' : 'Video URL'}
           <input
             value={form.video_url}
             onChange={(event) => setForm((current) => ({ ...current, video_url: event.target.value }))}
@@ -294,7 +360,7 @@ function LineupModal({
         </label>
 
         <div className="field-group">
-          <span>Side</span>
+          <span>{isRu ? 'Сторона' : 'Side'}</span>
           <div className="badge-toggle-row">
             {(['T', 'CT'] as const).map((side) => (
               <button
@@ -311,7 +377,7 @@ function LineupModal({
         </div>
 
         <div className="field-group">
-          <span>Stance</span>
+          <span>{isRu ? 'Стойка' : 'Stance'}</span>
           <ToggleIconGroup
             options={THROW_STANCE_OPTIONS}
             value={form.throw_stance}
@@ -320,7 +386,7 @@ function LineupModal({
         </div>
 
         <div className="field-group">
-          <span>Movement</span>
+          <span>{isRu ? 'Движение' : 'Movement'}</span>
           <ToggleIconGroup
             options={THROW_MOVEMENT_OPTIONS}
             value={form.throw_movement}
@@ -329,7 +395,7 @@ function LineupModal({
         </div>
 
         <div className="field-group">
-          <span>Jump</span>
+          <span>{isRu ? 'Прыжок' : 'Jump'}</span>
           <ToggleIconGroup
             options={THROW_JUMP_OPTIONS}
             value={form.throw_jump}
@@ -338,7 +404,7 @@ function LineupModal({
         </div>
 
         <div className="field-group">
-          <span>Grenade type</span>
+          <span>{isRu ? 'Тип гранаты' : 'Grenade type'}</span>
           <div className="badge-toggle-row">
             {(Object.keys(GRENADE_BADGES) as Array<Lineup['grenade_type']>).map((type) => (
               <button
@@ -354,7 +420,7 @@ function LineupModal({
         </div>
 
         <div className="field-group">
-          <span>Pinned callouts / anchors</span>
+          <span>{isRu ? 'Закрепленные точки / anchors' : 'Pinned callouts / anchors'}</span>
           <div className="anchor-chip-grid">
             {mapAnchors.map((anchor) => (
               <button
@@ -367,11 +433,15 @@ function LineupModal({
               </button>
             ))}
           </div>
-          <p className="form-hint">Use anchors to tag the exact area this lineup belongs to.</p>
+          <p className="form-hint">
+            {isRu
+              ? 'Используйте anchors, чтобы пометить точную зону, к которой относится этот лайнап.'
+              : 'Use anchors to tag the exact area this lineup belongs to.'}
+          </p>
         </div>
 
         <label>
-          Screenshots {initial ? '(upload to replace/add)' : ''}
+          {isRu ? 'Скриншоты' : 'Screenshots'} {initial ? (isRu ? '(загрузите, чтобы заменить или добавить)' : '(upload to replace/add)') : ''}
           <input
             type="file"
             multiple
@@ -383,10 +453,10 @@ function LineupModal({
 
         <div className="modal-footer">
           <button type="button" className="ghost-action" onClick={onClose} disabled={loading}>
-            Cancel
+            {t('common.cancel')}
           </button>
           <button type="submit" className="primary-action" disabled={loading}>
-            {loading ? 'Saving...' : initial ? 'Save lineup' : 'Create lineup'}
+            {loading ? (isRu ? 'Сохраняем...' : 'Saving...') : initial ? (isRu ? 'Сохранить лайнап' : 'Save lineup') : isRu ? 'Создать лайнап' : 'Create lineup'}
           </button>
         </div>
       </form>
@@ -416,6 +486,8 @@ function LineupPreviewModal({
   const [comments, setComments] = useState<LineupComment[]>([])
   const [loadingComments, setLoadingComments] = useState(false)
   const { pushToast } = useToast()
+  const { locale, formatDate } = useLocale()
+  const isRu = locale === 'ru'
 
   const refreshComments = useCallback(async () => {
     if (!lineup) return
@@ -427,7 +499,7 @@ function LineupPreviewModal({
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not load lineup discussion',
+        title: isRu ? 'Не удалось загрузить обсуждение лайнапа' : 'Could not load lineup discussion',
         message: getErrorMessage(error),
       })
     } finally {
@@ -444,7 +516,7 @@ function LineupPreviewModal({
   if (!lineup) return null
 
   return (
-    <Modal open={open} title={lineup.name} description="Detailed lineup view" onClose={onClose}>
+    <Modal open={open} title={lineup.name} description={isRu ? 'Подробный просмотр лайнапа' : 'Detailed lineup view'} onClose={onClose}>
       <div className="lineup-detail-view">
         <img src={lineup.screenshots[0]} alt={lineup.name} className="lineup-detail-image" />
 
@@ -455,7 +527,7 @@ function LineupPreviewModal({
 
         <AnchorPills mapId={mapId} anchorIds={lineup.anchor_ids} />
 
-        <p>{lineup.description || 'No description provided.'}</p>
+        <p>{lineup.description || (isRu ? 'Описание не добавлено.' : 'No description provided.')}</p>
 
         <div className="lineup-throw-icons lineup-throw-icons-detail">
           <img src={THROW_STANCE_OPTIONS.find((item) => item.value === lineup.throw_stance)?.icon ?? ''} alt="" />
@@ -464,26 +536,27 @@ function LineupPreviewModal({
         </div>
 
         <div className="content-meta-row">
-          <span>{lineup.author?.username ?? 'Unknown author'}</span>
-          <span>{new Date(lineup.created_at).toLocaleDateString()}</span>
+          <span>{lineup.author?.username ?? (isRu ? 'Неизвестный автор' : 'Unknown author')}</span>
+          <span>{formatDate(lineup.created_at)}</span>
         </div>
 
         <div className="inline-actions">
           <FavoriteButton active={isFavorite} withLabel onClick={() => void onToggleFavorite(lineup)} />
           {lineup.video_url ? (
             <a href={lineup.video_url} target="_blank" rel="noreferrer" className="ghost-action">
-              Open video
+              {isRu ? 'Открыть видео' : 'Open video'}
             </a>
           ) : null}
         </div>
 
         <CommentThread
-          title="Lineup discussion"
+          title={isRu ? 'Обсуждение лайнапа' : 'Lineup discussion'}
           comments={comments}
           loading={loadingComments}
           currentUserId={currentUserId}
           canModerate={canModerate}
-          placeholder="Add a note, warning or setup tip for this lineup..."
+          placeholder={isRu ? 'Добавьте заметку, предупреждение или совет по этому лайнапу...' : 'Add a note, warning or setup tip for this lineup...'}
+          submitLabel={isRu ? 'Отправить комментарий' : 'Post comment'}
           onSubmit={async (body) => {
             try {
               await createLineupComment({
@@ -496,7 +569,7 @@ function LineupPreviewModal({
             } catch (error) {
               pushToast({
                 tone: 'error',
-                title: 'Could not post lineup comment',
+                title: isRu ? 'Не удалось отправить комментарий к лайнапу' : 'Could not post lineup comment',
                 message: getErrorMessage(error),
               })
               throw error
@@ -509,7 +582,7 @@ function LineupPreviewModal({
             } catch (error) {
               pushToast({
                 tone: 'error',
-                title: 'Could not delete lineup comment',
+                title: isRu ? 'Не удалось удалить комментарий к лайнапу' : 'Could not delete lineup comment',
                 message: getErrorMessage(error),
               })
               throw error
@@ -551,6 +624,8 @@ function StratModal({
   })
   const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null)
   const mapAnchors = getMapAnchors(map.id)
+  const { locale, t } = useLocale()
+  const isRu = locale === 'ru'
 
   const toggleType = (type: string) => {
     setForm((current) => {
@@ -585,7 +660,7 @@ function StratModal({
   }
 
   return (
-    <Modal open={open} title={initial ? 'Edit strat' : 'Add strat'} onClose={onClose}>
+    <Modal open={open} title={initial ? (isRu ? 'Редактировать стратегию' : 'Edit strat') : isRu ? 'Добавить стратегию' : 'Add strat'} onClose={onClose}>
       <form
         className="stack-form"
         onSubmit={(event) => {
@@ -595,7 +670,7 @@ function StratModal({
         }}
       >
         <label>
-          Name
+          {isRu ? 'Название' : 'Name'}
           <input
             value={form.name}
             onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
@@ -605,7 +680,7 @@ function StratModal({
         </label>
 
         <label>
-          Note
+          {isRu ? 'Заметка' : 'Note'}
           <textarea
             value={form.note}
             onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))}
@@ -614,7 +689,7 @@ function StratModal({
         </label>
 
         <label>
-          Video URL
+          {isRu ? 'Ссылка на видео' : 'Video URL'}
           <input
             value={form.video_url}
             onChange={(event) => setForm((current) => ({ ...current, video_url: event.target.value }))}
@@ -623,7 +698,7 @@ function StratModal({
         </label>
 
         <div className="field-group">
-          <span>Side</span>
+          <span>{isRu ? 'Сторона' : 'Side'}</span>
           <div className="badge-toggle-row">
             {(['T', 'CT'] as const).map((side) => (
               <button
@@ -640,7 +715,7 @@ function StratModal({
         </div>
 
         <div className="field-group">
-          <span>Types</span>
+          <span>{isRu ? 'Типы' : 'Types'}</span>
           <div className="chip-row">
             {['buyround', 'force', 'pistol'].map((type) => (
               <button
@@ -649,15 +724,15 @@ function StratModal({
                 className={`filter-chip ${form.types.includes(type) ? 'active' : ''}`}
                 onClick={() => toggleType(type)}
               >
-                {type}
+                {getStratTypeLabel(locale, type as 'buyround' | 'force' | 'pistol')}
               </button>
             ))}
           </div>
-          {form.types.length === 0 ? <p className="form-hint error">Pick at least one strat type.</p> : null}
+          {form.types.length === 0 ? <p className="form-hint error">{isRu ? 'Выберите хотя бы один тип стратегии.' : 'Pick at least one strat type.'}</p> : null}
         </div>
 
         <div className="field-group">
-          <span>Pinned callouts / anchors</span>
+          <span>{isRu ? 'Закрепленные точки / anchors' : 'Pinned callouts / anchors'}</span>
           <div className="anchor-chip-grid">
             {mapAnchors.map((anchor) => (
               <button
@@ -670,11 +745,11 @@ function StratModal({
               </button>
             ))}
           </div>
-          <p className="form-hint">Tag the key areas this strat controls or finishes through.</p>
+          <p className="form-hint">{isRu ? 'Отметьте ключевые зоны, которые эта стратегия контролирует или через которые заканчивается.' : 'Tag the key areas this strat controls or finishes through.'}</p>
         </div>
 
         <div className="field-group">
-          <span>Linked lineups</span>
+          <span>{isRu ? 'Связанные лайнапы' : 'Linked lineups'}</span>
           {availableLineups.length ? (
             <div className="linked-lineup-grid">
               {availableLineups.map((lineup) => {
@@ -688,19 +763,19 @@ function StratModal({
                     onClick={() => toggleLinkedLineup(lineup.id)}
                   >
                     <strong>{lineup.name}</strong>
-                    <span>{lineup.grenade_type} · {lineup.side}</span>
+                    <span>{getGrenadeTypeLabel(locale, lineup.grenade_type)} · {lineup.side}</span>
                   </button>
                 )
               })}
             </div>
           ) : (
-            <p className="form-hint">No lineups on this map yet. Create them first, then link them to the strat.</p>
+            <p className="form-hint">{isRu ? 'На этой карте пока нет лайнапов. Сначала создайте их, затем привяжите к стратегии.' : 'No lineups on this map yet. Create them first, then link them to the strat.'}</p>
           )}
         </div>
 
         <div className="field-group">
           <div className="replay-steps-header">
-            <span>Mini replay flow</span>
+            <span>{isRu ? 'Мини replay flow' : 'Mini replay flow'}</span>
             <button
               type="button"
               className="ghost-action"
@@ -711,7 +786,7 @@ function StratModal({
                 }))
               }
             >
-              Add step
+              {isRu ? 'Добавить шаг' : 'Add step'}
             </button>
           </div>
 
@@ -720,7 +795,7 @@ function StratModal({
               {form.replay_steps.map((step, index) => (
                 <article key={step.id} className="replay-step-card">
                   <label>
-                    Step title
+                    {isRu ? 'Название шага' : 'Step title'}
                     <input
                       type="text"
                       value={step.title}
@@ -738,7 +813,7 @@ function StratModal({
                   </label>
 
                   <label>
-                    Step note
+                    {isRu ? 'Заметка к шагу' : 'Step note'}
                     <textarea
                       rows={2}
                       value={step.note ?? ''}
@@ -757,7 +832,7 @@ function StratModal({
 
                   <div className="replay-step-actions">
                     <button type="button" className="ghost-action" onClick={() => setEditingStepIndex(index)}>
-                      Edit board
+                      {isRu ? 'Редактировать доску' : 'Edit board'}
                     </button>
                     <button
                       type="button"
@@ -774,20 +849,20 @@ function StratModal({
                         }))
                       }
                     >
-                      Remove
+                      {isRu ? 'Удалить' : 'Remove'}
                     </button>
                   </div>
                 </article>
               ))}
             </div>
           ) : (
-            <p className="form-hint">Add board steps to turn this strat into a guided round-by-round replay.</p>
+            <p className="form-hint">{isRu ? 'Добавьте шаги с доской, чтобы превратить стратегию в пошаговый replay.' : 'Add board steps to turn this strat into a guided round-by-round replay.'}</p>
           )}
         </div>
 
         <div className="field-group">
           <div className="replay-steps-header">
-            <span>Training checklist</span>
+            <span>{isRu ? 'Тренировочный чеклист' : 'Training checklist'}</span>
             <button
               type="button"
               className="ghost-action"
@@ -801,7 +876,7 @@ function StratModal({
                 }))
               }
             >
-              Add task
+              {isRu ? 'Добавить задачу' : 'Add task'}
             </button>
           </div>
 
@@ -810,7 +885,7 @@ function StratModal({
               {form.training_checklist.map((task, index) => (
                 <article key={task.id} className="training-task-card">
                   <label>
-                    Task title
+                    {isRu ? 'Название задачи' : 'Task title'}
                     <input
                       type="text"
                       value={task.title}
@@ -829,7 +904,7 @@ function StratModal({
 
                   <div className="training-task-row">
                     <label>
-                      Role preset
+                      {isRu ? 'Роль' : 'Role preset'}
                       <select
                         className="table-input"
                         value={task.role_preset ?? ''}
@@ -844,17 +919,17 @@ function StratModal({
                           }))
                         }
                       >
-                        <option value="">Any role</option>
+                        <option value="">{isRu ? 'Любая роль' : 'Any role'}</option>
                         {TEAM_ROLE_PRESETS.map((preset) => (
                           <option key={preset.value} value={preset.value}>
-                            {preset.label}
+                            {getRolePresetLabel(locale, preset.value)}
                           </option>
                         ))}
                       </select>
                     </label>
 
                     <label>
-                      Replay step
+                      {isRu ? 'Шаг replay' : 'Replay step'}
                       <select
                         className="table-input"
                         value={task.step_id ?? ''}
@@ -869,7 +944,7 @@ function StratModal({
                           }))
                         }
                       >
-                        <option value="">All steps</option>
+                        <option value="">{isRu ? 'Все шаги' : 'All steps'}</option>
                         {form.replay_steps.map((step, stepIndex) => (
                           <option key={step.id} value={step.id}>
                             {stepIndex + 1}. {step.title}
@@ -880,7 +955,7 @@ function StratModal({
                   </div>
 
                   <label>
-                    Task note
+                    {isRu ? 'Заметка к задаче' : 'Task note'}
                     <textarea
                       rows={2}
                       value={task.note ?? ''}
@@ -898,7 +973,7 @@ function StratModal({
                   </label>
 
                   <div className="replay-step-actions">
-                    <span className="form-hint">Attach the task to one replay step or keep it global.</span>
+                    <span className="form-hint">{isRu ? 'Привяжите задачу к конкретному шагу replay или оставьте общей.' : 'Attach the task to one replay step or keep it global.'}</span>
                     <button
                       type="button"
                       className="danger-link"
@@ -909,23 +984,23 @@ function StratModal({
                         }))
                       }
                     >
-                      Remove
+                      {isRu ? 'Удалить' : 'Remove'}
                     </button>
                   </div>
                 </article>
               ))}
             </div>
           ) : (
-            <p className="form-hint">Add drill tasks so teammates can run the strat as a checklist during practice.</p>
+            <p className="form-hint">{isRu ? 'Добавьте тренировочные задачи, чтобы команда могла отрабатывать стратегию по чеклисту.' : 'Add drill tasks so teammates can run the strat as a checklist during practice.'}</p>
           )}
         </div>
 
         <div className="modal-footer">
           <button type="button" className="ghost-action" onClick={onClose} disabled={loading}>
-            Cancel
+            {t('common.cancel')}
           </button>
           <button type="submit" className="primary-action" disabled={loading || form.types.length === 0}>
-            {loading ? 'Saving...' : initial ? 'Save strat' : 'Create strat'}
+            {loading ? (isRu ? 'Сохраняем...' : 'Saving...') : initial ? (isRu ? 'Сохранить стратегию' : 'Save strat') : isRu ? 'Создать стратегию' : 'Create strat'}
           </button>
         </div>
       </form>
@@ -961,6 +1036,8 @@ function StratShareCard({
   strat: Strat
   map: MapDefinition
 }) {
+  const { locale } = useLocale()
+  const isRu = locale === 'ru'
   const primaryStep = strat.replay_steps[0] ?? null
   const linkedLineups = strat.linked_lineups ?? []
   const previewLineups = linkedLineups.slice(0, 3)
@@ -974,7 +1051,7 @@ function StratShareCard({
     >
       <div className="share-card-topbar">
         <div>
-          <p className="share-card-eyebrow">StratForge Share Card</p>
+          <p className="share-card-eyebrow">{isRu ? 'StratForge Share Card' : 'StratForge Share Card'}</p>
           <h3>{strat.name}</h3>
         </div>
         <span className="share-card-map">{map.name}</span>
@@ -983,25 +1060,25 @@ function StratShareCard({
       <div className="content-badge-row">
         <SideBadge side={strat.side} />
         {strat.types.map((type) => (
-          <span key={type} className="filter-chip active small">{type}</span>
+          <span key={type} className="filter-chip active small">{getStratTypeLabel(locale, type as 'buyround' | 'force' | 'pistol')}</span>
         ))}
       </div>
 
       <AnchorPills mapId={map.id} anchorIds={strat.anchor_ids} />
 
       <p className="share-card-note">
-        {strat.note || 'Brief your team with the key pathing, timings, utility and win condition for this round.'}
+        {strat.note || (isRu ? 'Коротко разберите с командой ключевые маршруты, тайминги, утилити и условие победы в этом раунде.' : 'Brief your team with the key pathing, timings, utility and win condition for this round.')}
       </p>
 
       <div className="share-card-grid">
         <div className="share-card-panel">
-          <span className="share-card-label">Execution snapshot</span>
-          <strong>{primaryStep?.title ?? 'No replay steps yet'}</strong>
-          <p>{primaryStep?.note || 'Add replay steps to turn this into a guided tactical walkthrough.'}</p>
+          <span className="share-card-label">{isRu ? 'Снимок исполнения' : 'Execution snapshot'}</span>
+          <strong>{primaryStep?.title ?? (isRu ? 'Replay-шагов пока нет' : 'No replay steps yet')}</strong>
+          <p>{primaryStep?.note || (isRu ? 'Добавьте replay-шаги, чтобы превратить это в пошаговый тактический разбор.' : 'Add replay steps to turn this into a guided tactical walkthrough.')}</p>
         </div>
 
         <div className="share-card-panel">
-          <span className="share-card-label">Attached utility</span>
+          <span className="share-card-label">{isRu ? 'Привязанная утилита' : 'Attached utility'}</span>
           {previewLineups.length ? (
             <div className="share-card-lineups">
               {previewLineups.map((lineup) => (
@@ -1011,16 +1088,16 @@ function StratShareCard({
               ))}
             </div>
           ) : (
-            <p>No linked lineups yet.</p>
+            <p>{isRu ? 'Связанных лайнапов пока нет.' : 'No linked lineups yet.'}</p>
           )}
         </div>
       </div>
 
       <div className="share-card-footer">
-        <span>{strat.author?.username ?? 'Unknown author'}</span>
-        <span>{linkedLineups.length} lineups</span>
-        <span>{strat.replay_steps.length} steps</span>
-        <span>{strat.training_checklist.length} tasks</span>
+        <span>{strat.author?.username ?? (isRu ? 'Неизвестный автор' : 'Unknown author')}</span>
+        <span>{linkedLineups.length} {isRu ? 'лайнапов' : 'lineups'}</span>
+        <span>{strat.replay_steps.length} {isRu ? 'шагов' : 'steps'}</span>
+        <span>{strat.training_checklist.length} {isRu ? 'задач' : 'tasks'}</span>
       </div>
     </div>
   )
@@ -1054,6 +1131,8 @@ function StratPreviewModal({
   const [activeStepIndex, setActiveStepIndex] = useState(0)
   const [exportingCard, setExportingCard] = useState(false)
   const { pushToast } = useToast()
+  const { locale, formatDate } = useLocale()
+  const isRu = locale === 'ru'
   const shareCardRef = useRef<HTMLDivElement | null>(null)
 
   const replaySteps = strat?.replay_steps ?? []
@@ -1071,7 +1150,7 @@ function StratPreviewModal({
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not load strat discussion',
+        title: isRu ? 'Не удалось загрузить обсуждение стратегии' : 'Could not load strat discussion',
         message: getErrorMessage(error),
       })
     } finally {
@@ -1089,36 +1168,36 @@ function StratPreviewModal({
   if (!strat) return null
 
   return (
-    <Modal open={open} title={strat.name} description="Detailed strat view" onClose={onClose}>
+    <Modal open={open} title={strat.name} description={isRu ? 'Подробный просмотр стратегии' : 'Detailed strat view'} onClose={onClose}>
       <div className="strat-detail-view">
         <div className="content-badge-row">
           <SideBadge side={strat.side} />
           {strat.types.map((type) => (
-            <span key={type} className="filter-chip active small">{type}</span>
+            <span key={type} className="filter-chip active small">{getStratTypeLabel(locale, type as 'buyround' | 'force' | 'pistol')}</span>
           ))}
         </div>
 
         <AnchorPills mapId={map.id} anchorIds={strat.anchor_ids} />
 
-        <p>{strat.note || 'No note provided.'}</p>
+        <p>{strat.note || (isRu ? 'Заметка не добавлена.' : 'No note provided.')}</p>
 
         <div className="content-meta-row">
-          <span>{strat.author?.username ?? 'Unknown author'}</span>
-          <span>{new Date(strat.created_at).toLocaleDateString()}</span>
+          <span>{strat.author?.username ?? (isRu ? 'Неизвестный автор' : 'Unknown author')}</span>
+          <span>{formatDate(strat.created_at)}</span>
         </div>
 
         {strat.video_url ? (
           <a href={strat.video_url} target="_blank" rel="noreferrer" className="ghost-action">
-            Open video
+            {isRu ? 'Открыть видео' : 'Open video'}
           </a>
         ) : null}
 
         <div className="inline-actions">
           <button type="button" className="primary-action" onClick={() => onOpenPresentation(strat)}>
-            Presentation mode
+            {isRu ? 'Режим презентации' : 'Presentation mode'}
           </button>
           <button type="button" className="ghost-action" onClick={() => onOpenTraining(strat)}>
-            Training mode
+            {isRu ? 'Режим тренировки' : 'Training mode'}
           </button>
           <button
             type="button"
@@ -1131,11 +1210,11 @@ function StratPreviewModal({
               try {
                 const safeName = strat.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'strat'
                 await exportNodeAsPng(shareCardRef.current, `${safeName}-share-card.png`)
-                pushToast({ tone: 'success', title: 'Share card exported' })
+                pushToast({ tone: 'success', title: isRu ? 'Карточка экспортирована' : 'Share card exported' })
               } catch (error) {
                 pushToast({
                   tone: 'error',
-                  title: 'Could not export share card',
+                  title: isRu ? 'Не удалось экспортировать share card' : 'Could not export share card',
                   message: getErrorMessage(error),
                 })
               } finally {
@@ -1143,17 +1222,17 @@ function StratPreviewModal({
               }
             }}
           >
-            {exportingCard ? 'Exporting...' : 'Export share card'}
+            {exportingCard ? (isRu ? 'Экспортируем...' : 'Exporting...') : isRu ? 'Экспортировать share card' : 'Export share card'}
           </button>
           <button type="button" className="ghost-action" onClick={() => onOpenVersionHistory(strat)}>
-            Version history
+            {isRu ? 'История версий' : 'Version history'}
           </button>
         </div>
 
         <section className="detail-section">
           <div className="detail-section-header">
-            <h4>Linked lineups</h4>
-            <span>{linkedLineups.length} attached</span>
+            <h4>{isRu ? 'Связанные лайнапы' : 'Linked lineups'}</h4>
+            <span>{linkedLineups.length} {isRu ? 'прикреплено' : 'attached'}</span>
           </div>
 
           {linkedLineups.length ? (
@@ -1166,19 +1245,19 @@ function StratPreviewModal({
                   onClick={() => onOpenLineup(lineup)}
                 >
                   <strong>{lineup.name}</strong>
-                  <span>{lineup.grenade_type} · {lineup.side}</span>
-                </button>
-              ))}
-            </div>
+                    <span>{getGrenadeTypeLabel(locale, lineup.grenade_type)} · {lineup.side}</span>
+                  </button>
+                ))}
+              </div>
           ) : (
-            <p className="form-hint">No linked lineups yet for this strat.</p>
+            <p className="form-hint">{isRu ? 'У этой стратегии пока нет связанных лайнапов.' : 'No linked lineups yet for this strat.'}</p>
           )}
         </section>
 
         <section className="detail-section">
           <div className="detail-section-header">
-            <h4>Mini replay flow</h4>
-            <span>{replaySteps.length} steps</span>
+            <h4>{isRu ? 'Мини replay flow' : 'Mini replay flow'}</h4>
+            <span>{replaySteps.length} {isRu ? 'шагов' : 'steps'}</span>
           </div>
 
           {activeStep ? (
@@ -1188,7 +1267,7 @@ function StratPreviewModal({
               <div className="replay-player-sidebar">
                 <div className="replay-player-current">
                   <strong>{activeStep.title}</strong>
-                  <p>{activeStep.note || 'No step note provided.'}</p>
+                  <p>{activeStep.note || (isRu ? 'Заметка к шагу не добавлена.' : 'No step note provided.')}</p>
                 </div>
 
                 <div className="replay-player-controls">
@@ -1198,7 +1277,7 @@ function StratPreviewModal({
                     disabled={activeStepIndex === 0}
                     onClick={() => setActiveStepIndex((current) => Math.max(0, current - 1))}
                   >
-                    Previous
+                    {isRu ? 'Назад' : 'Previous'}
                   </button>
                   <button
                     type="button"
@@ -1206,7 +1285,7 @@ function StratPreviewModal({
                     disabled={activeStepIndex >= replaySteps.length - 1}
                     onClick={() => setActiveStepIndex((current) => Math.min(replaySteps.length - 1, current + 1))}
                   >
-                    Next
+                    {isRu ? 'Далее' : 'Next'}
                   </button>
                 </div>
 
@@ -1225,14 +1304,14 @@ function StratPreviewModal({
               </div>
             </div>
           ) : (
-            <p className="form-hint">No replay steps yet. Add them when editing this strat.</p>
+            <p className="form-hint">{isRu ? 'Replay-шагов пока нет. Добавьте их при редактировании этой стратегии.' : 'No replay steps yet. Add them when editing this strat.'}</p>
           )}
         </section>
 
         <section className="detail-section">
           <div className="detail-section-header">
-            <h4>Training checklist</h4>
-            <span>{trainingChecklist.length} tasks</span>
+            <h4>{isRu ? 'Тренировочный чеклист' : 'Training checklist'}</h4>
+            <span>{trainingChecklist.length} {isRu ? 'задач' : 'tasks'}</span>
           </div>
 
           {trainingChecklist.length ? (
@@ -1243,25 +1322,26 @@ function StratPreviewModal({
                     <strong>{task.title}</strong>
                     <RolePresetBadge rolePreset={task.role_preset} />
                   </div>
-                  <p>{task.note || 'No extra note provided.'}</p>
+                  <p>{task.note || (isRu ? 'Дополнительная заметка не добавлена.' : 'No extra note provided.')}</p>
                 </div>
               ))}
               {trainingChecklist.length > 4 ? (
-                <p className="form-hint">Open Training mode to work through the full checklist.</p>
+                <p className="form-hint">{isRu ? 'Откройте режим тренировки, чтобы пройти весь чеклист.' : 'Open Training mode to work through the full checklist.'}</p>
               ) : null}
             </div>
           ) : (
-            <p className="form-hint">No training tasks yet. Add them while editing the strat.</p>
+            <p className="form-hint">{isRu ? 'Тренировочных задач пока нет. Добавьте их при редактировании стратегии.' : 'No training tasks yet. Add them while editing the strat.'}</p>
           )}
         </section>
 
         <CommentThread
-          title="Strat discussion"
+          title={isRu ? 'Обсуждение стратегии' : 'Strat discussion'}
           comments={comments}
           loading={loadingComments}
           currentUserId={currentUserId}
           canModerate={canModerate}
-          placeholder="Discuss timings, roles or adjustments for this strat..."
+          placeholder={isRu ? 'Обсудите тайминги, роли или правки для этой стратегии...' : 'Discuss timings, roles or adjustments for this strat...'}
+          submitLabel={isRu ? 'Отправить комментарий' : 'Post comment'}
           onSubmit={async (body) => {
             try {
               await createStratComment({
@@ -1274,7 +1354,7 @@ function StratPreviewModal({
             } catch (error) {
               pushToast({
                 tone: 'error',
-                title: 'Could not post strat comment',
+                title: isRu ? 'Не удалось отправить комментарий к стратегии' : 'Could not post strat comment',
                 message: getErrorMessage(error),
               })
               throw error
@@ -1287,7 +1367,7 @@ function StratPreviewModal({
             } catch (error) {
               pushToast({
                 tone: 'error',
-                title: 'Could not delete strat comment',
+                title: isRu ? 'Не удалось удалить комментарий к стратегии' : 'Could not delete strat comment',
                 message: getErrorMessage(error),
               })
               throw error
@@ -1324,6 +1404,8 @@ function StratVersionHistoryModal({
   const [loading, setLoading] = useState(false)
   const [restoringId, setRestoringId] = useState<string | null>(null)
   const { pushToast } = useToast()
+  const { locale, formatDateTime } = useLocale()
+  const isRu = locale === 'ru'
 
   const refreshVersions = useCallback(async () => {
     if (!strat) return
@@ -1335,7 +1417,7 @@ function StratVersionHistoryModal({
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not load version history',
+        title: isRu ? 'Не удалось загрузить историю версий' : 'Could not load version history',
         message: getErrorMessage(error),
       })
     } finally {
@@ -1354,14 +1436,14 @@ function StratVersionHistoryModal({
   return (
     <Modal
       open={open}
-      title={`${strat.name} · Version history`}
-      description="Browse previous snapshots and roll back to an earlier tactical plan."
+      title={`${strat.name} · ${isRu ? 'История версий' : 'Version history'}`}
+      description={isRu ? 'Просматривайте прошлые снапшоты и откатывайтесь к более раннему тактическому плану.' : 'Browse previous snapshots and roll back to an earlier tactical plan.'}
       onClose={onClose}
       className="modal-card-wide"
     >
       {loading ? (
         <div className="empty-panel">
-          <strong>Loading versions...</strong>
+          <strong>{isRu ? 'Загружаем версии...' : 'Loading versions...'}</strong>
         </div>
       ) : versions.length ? (
         <div className="version-history-list">
@@ -1369,9 +1451,9 @@ function StratVersionHistoryModal({
             <article key={version.id} className="version-history-card">
               <div className="version-history-header">
                 <div>
-                  <strong>Version {versions.length - index}</strong>
+                  <strong>{isRu ? 'Версия' : 'Version'} {versions.length - index}</strong>
                   <span>
-                    {new Date(version.created_at).toLocaleString()} · {version.author?.username ?? 'Unknown author'}
+                    {formatDateTime(version.created_at)} · {version.author?.username ?? (isRu ? 'Неизвестный автор' : 'Unknown author')}
                   </span>
                 </div>
                 {canRestore ? (
@@ -1386,14 +1468,14 @@ function StratVersionHistoryModal({
                         await onRestored()
                         pushToast({
                           tone: 'success',
-                          title: 'Version restored',
-                          message: `"${version.snapshot.name}" is active again.`,
+                          title: isRu ? 'Версия восстановлена' : 'Version restored',
+                          message: isRu ? `Стратегия "${version.snapshot.name}" снова активна.` : `"${version.snapshot.name}" is active again.`,
                         })
                         onClose()
                       } catch (error) {
                         pushToast({
                           tone: 'error',
-                          title: 'Could not restore version',
+                          title: isRu ? 'Не удалось восстановить версию' : 'Could not restore version',
                           message: getErrorMessage(error),
                         })
                       } finally {
@@ -1401,7 +1483,7 @@ function StratVersionHistoryModal({
                       }
                     }}
                   >
-                    {restoringId === version.id ? 'Restoring...' : 'Restore this version'}
+                    {restoringId === version.id ? (isRu ? 'Восстанавливаем...' : 'Restoring...') : isRu ? 'Восстановить эту версию' : 'Restore this version'}
                   </button>
                 ) : null}
               </div>
@@ -1409,24 +1491,24 @@ function StratVersionHistoryModal({
               <div className="content-badge-row">
                 <SideBadge side={version.snapshot.side} />
                 {version.snapshot.types.map((type) => (
-                  <span key={type} className="filter-chip active small">{type}</span>
+                  <span key={type} className="filter-chip active small">{getStratTypeLabel(locale, type as 'buyround' | 'force' | 'pistol')}</span>
                 ))}
               </div>
 
-              <p>{version.snapshot.note || 'No note provided for this version.'}</p>
+              <p>{version.snapshot.note || (isRu ? 'Для этой версии заметка не добавлена.' : 'No note provided for this version.')}</p>
 
               <div className="content-meta-row">
-                <span>{version.snapshot.linked_lineup_ids.length} linked lineups</span>
-                <span>{version.snapshot.replay_steps.length} replay steps</span>
-                <span>{version.snapshot.training_checklist.length} training tasks</span>
+                <span>{version.snapshot.linked_lineup_ids.length} {isRu ? 'связанных лайнапов' : 'linked lineups'}</span>
+                <span>{version.snapshot.replay_steps.length} {isRu ? 'replay-шагов' : 'replay steps'}</span>
+                <span>{version.snapshot.training_checklist.length} {isRu ? 'тренировочных задач' : 'training tasks'}</span>
               </div>
             </article>
           ))}
         </div>
       ) : (
         <div className="empty-panel">
-          <strong>No saved versions yet</strong>
-          <span>The first snapshots appear after you create or edit this strat with the new version system enabled.</span>
+          <strong>{isRu ? 'Сохраненных версий пока нет' : 'No saved versions yet'}</strong>
+          <span>{isRu ? 'Первые снапшоты появятся после создания или редактирования этой стратегии с включенной системой версий.' : 'The first snapshots appear after you create or edit this strat with the new version system enabled.'}</span>
         </div>
       )}
     </Modal>
@@ -1444,6 +1526,8 @@ function StratPresentationModeModal({
   open: boolean
   onClose: () => void
 }) {
+  const { locale } = useLocale()
+  const isRu = locale === 'ru'
   const [activeStepIndex, setActiveStepIndex] = useState(0)
 
   if (!strat) return null
@@ -1455,7 +1539,7 @@ function StratPresentationModeModal({
     <Modal
       open={open}
       title={strat.name}
-      description="Presentation mode"
+      description={isRu ? 'Режим презентации' : 'Presentation mode'}
       onClose={onClose}
       className="modal-card-wide presentation-modal"
       bodyClassName="presentation-modal-body"
@@ -1465,31 +1549,33 @@ function StratPresentationModeModal({
           <div className="content-badge-row">
             <SideBadge side={strat.side} />
             {strat.types.map((type) => (
-              <span key={type} className="filter-chip active small">{type}</span>
+              <span key={type} className="filter-chip active small">{getStratTypeLabel(locale, type as 'buyround' | 'force' | 'pistol')}</span>
             ))}
           </div>
 
           <AnchorPills mapId={map.id} anchorIds={strat.anchor_ids} />
 
           <div className="presentation-summary-card">
-            <strong>{activeStep?.title ?? 'Round summary'}</strong>
-            <p>{activeStep?.note || strat.note || 'Walk the team through the timing, utility and win condition for this round.'}</p>
+            <strong>{activeStep?.title ?? (isRu ? 'Сводка по раунду' : 'Round summary')}</strong>
+            <p>{activeStep?.note || strat.note || (isRu ? 'Проведите команду по таймингам, утилите и условию победы в этом раунде.' : 'Walk the team through the timing, utility and win condition for this round.')}</p>
           </div>
 
           {activeStep ? (
             <ScenePreviewBoard map={map} scene={activeStep.scene} />
           ) : (
             <div className="detail-section">
-              <strong>No replay flow yet</strong>
+              <strong>{isRu ? 'Replay flow пока нет' : 'No replay flow yet'}</strong>
               <p className="form-hint">
-                This strat does not have replay steps yet. Add them in edit mode to unlock slide-by-slide presentation.
+                {isRu
+                  ? 'У этой стратегии пока нет replay-шагов. Добавьте их в режиме редактирования, чтобы открыть пошаговую презентацию.'
+                  : 'This strat does not have replay steps yet. Add them in edit mode to unlock slide-by-slide presentation.'}
               </p>
             </div>
           )}
 
           {strat.video_url ? (
             <a href={strat.video_url} target="_blank" rel="noreferrer" className="ghost-action">
-              Open reference video
+              {isRu ? 'Открыть референс-видео' : 'Open reference video'}
             </a>
           ) : null}
         </section>
@@ -1497,8 +1583,8 @@ function StratPresentationModeModal({
         <aside className="presentation-sidebar">
           <div className="detail-section">
             <div className="detail-section-header">
-              <h4>Flow</h4>
-              <span>{replaySteps.length || 1} slide{replaySteps.length === 1 ? '' : 's'}</span>
+              <h4>{isRu ? 'Flow' : 'Flow'}</h4>
+              <span>{replaySteps.length || 1} {isRu ? 'слайд(ов)' : `slide${replaySteps.length === 1 ? '' : 's'}`}</span>
             </div>
 
             {replaySteps.length ? (
@@ -1513,13 +1599,13 @@ function StratPresentationModeModal({
                     <span className="presentation-step-index">{index + 1}</span>
                     <div>
                       <strong>{step.title}</strong>
-                      <p>{step.note || 'No step note provided.'}</p>
+                      <p>{step.note || (isRu ? 'Заметка к шагу не добавлена.' : 'No step note provided.')}</p>
                     </div>
                   </button>
                 ))}
               </div>
             ) : (
-              <p className="form-hint">Use this summary slide for a quick mobile briefing.</p>
+              <p className="form-hint">{isRu ? 'Используйте этот слайд-сводку для быстрого мобильного брифинга.' : 'Use this summary slide for a quick mobile briefing.'}</p>
             )}
 
             {replaySteps.length ? (
@@ -1530,7 +1616,7 @@ function StratPresentationModeModal({
                   disabled={activeStepIndex === 0}
                   onClick={() => setActiveStepIndex((current) => Math.max(0, current - 1))}
                 >
-                  Previous
+                  {isRu ? 'Назад' : 'Previous'}
                 </button>
                 <button
                   type="button"
@@ -1538,7 +1624,7 @@ function StratPresentationModeModal({
                   disabled={activeStepIndex >= replaySteps.length - 1}
                   onClick={() => setActiveStepIndex((current) => Math.min(replaySteps.length - 1, current + 1))}
                 >
-                  Next
+                  {isRu ? 'Далее' : 'Next'}
                 </button>
               </div>
             ) : null}
@@ -1546,7 +1632,7 @@ function StratPresentationModeModal({
 
           <div className="detail-section">
             <div className="detail-section-header">
-              <h4>Linked lineups</h4>
+              <h4>{isRu ? 'Связанные лайнапы' : 'Linked lineups'}</h4>
               <span>{strat.linked_lineups?.length ?? 0}</span>
             </div>
 
@@ -1555,12 +1641,12 @@ function StratPresentationModeModal({
                 {strat.linked_lineups.map((lineup) => (
                   <div key={lineup.id} className="linked-lineup-chip">
                     <strong>{lineup.name}</strong>
-                    <span>{lineup.grenade_type} · {lineup.side}</span>
+                    <span>{getGrenadeTypeLabel(locale, lineup.grenade_type)} · {lineup.side}</span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="form-hint">No linked lineups attached to this strat yet.</p>
+              <p className="form-hint">{isRu ? 'К этой стратегии пока не прикреплены связанные лайнапы.' : 'No linked lineups attached to this strat yet.'}</p>
             )}
           </div>
         </aside>
@@ -1580,6 +1666,8 @@ function StratTrainingModeModal({
   open: boolean
   onClose: () => void
 }) {
+  const { locale } = useLocale()
+  const isRu = locale === 'ru'
   const [activeStepIndex, setActiveStepIndex] = useState(0)
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([])
 
@@ -1604,7 +1692,7 @@ function StratTrainingModeModal({
     <Modal
       open={open}
       title={strat.name}
-      description="Training mode"
+      description={isRu ? 'Режим тренировки' : 'Training mode'}
       onClose={onClose}
       className="modal-card-wide training-modal"
       bodyClassName="training-modal-body"
@@ -1613,9 +1701,9 @@ function StratTrainingModeModal({
         <section className="training-stage">
           <div className="detail-section">
             <div className="detail-section-header">
-              <h4>Practice status</h4>
+              <h4>{isRu ? 'Статус тренировки' : 'Practice status'}</h4>
               <span>
-                {completedTaskIds.length}/{strat.training_checklist.length} completed
+                {completedTaskIds.length}/{strat.training_checklist.length} {isRu ? 'выполнено' : 'completed'}
               </span>
             </div>
 
@@ -1630,7 +1718,7 @@ function StratTrainingModeModal({
 
             <div className="inline-actions">
               <button type="button" className="ghost-action" onClick={() => setCompletedTaskIds([])}>
-                Reset checklist
+                {isRu ? 'Сбросить чеклист' : 'Reset checklist'}
               </button>
             </div>
           </div>
@@ -1639,28 +1727,30 @@ function StratTrainingModeModal({
             <ScenePreviewBoard map={map} scene={activeStep.scene} />
           ) : (
             <div className="detail-section">
-              <strong>No replay steps yet</strong>
+              <strong>{isRu ? 'Replay-шагов пока нет' : 'No replay steps yet'}</strong>
               <p className="form-hint">
-                Training mode still works without board steps, but adding replay flow makes practice much clearer.
+                {isRu
+                  ? 'Режим тренировки работает и без шагов на доске, но replay flow делает практику намного понятнее.'
+                  : 'Training mode still works without board steps, but adding replay flow makes practice much clearer.'}
               </p>
             </div>
           )}
 
           <div className="detail-section">
             <div className="detail-section-header">
-              <h4>Current focus</h4>
-              <span>{activeStep ? `Step ${activeStepIndex + 1}` : 'Overview'}</span>
+              <h4>{isRu ? 'Текущий фокус' : 'Current focus'}</h4>
+              <span>{activeStep ? `${isRu ? 'Шаг' : 'Step'} ${activeStepIndex + 1}` : isRu ? 'Обзор' : 'Overview'}</span>
             </div>
-            <strong>{activeStep?.title ?? 'Whole-round checklist'}</strong>
-            <p>{activeStep?.note || strat.note || 'Run through utility, roles, space-taking and communication checkpoints.'}</p>
+            <strong>{activeStep?.title ?? (isRu ? 'Чеклист на весь раунд' : 'Whole-round checklist')}</strong>
+            <p>{activeStep?.note || strat.note || (isRu ? 'Пройдитесь по утилите, ролям, занятию пространства и контрольным точкам коммуникации.' : 'Run through utility, roles, space-taking and communication checkpoints.')}</p>
           </div>
         </section>
 
         <aside className="training-sidebar">
           <div className="detail-section">
             <div className="detail-section-header">
-              <h4>Replay flow</h4>
-              <span>{replaySteps.length} steps</span>
+              <h4>{isRu ? 'Replay flow' : 'Replay flow'}</h4>
+              <span>{replaySteps.length} {isRu ? 'шагов' : 'steps'}</span>
             </div>
 
             {replaySteps.length ? (
@@ -1676,7 +1766,7 @@ function StratTrainingModeModal({
                       <span className="presentation-step-index">{index + 1}</span>
                       <div>
                         <strong>{step.title}</strong>
-                        <p>{step.note || 'No step note provided.'}</p>
+                        <p>{step.note || (isRu ? 'Заметка к шагу не добавлена.' : 'No step note provided.')}</p>
                       </div>
                     </button>
                   ))}
@@ -1689,7 +1779,7 @@ function StratTrainingModeModal({
                     disabled={activeStepIndex === 0}
                     onClick={() => setActiveStepIndex((current) => Math.max(0, current - 1))}
                   >
-                    Previous
+                    {isRu ? 'Назад' : 'Previous'}
                   </button>
                   <button
                     type="button"
@@ -1697,19 +1787,19 @@ function StratTrainingModeModal({
                     disabled={activeStepIndex >= replaySteps.length - 1}
                     onClick={() => setActiveStepIndex((current) => Math.min(replaySteps.length - 1, current + 1))}
                   >
-                    Next
+                    {isRu ? 'Далее' : 'Next'}
                   </button>
                 </div>
               </>
             ) : (
-              <p className="form-hint">No replay steps yet. Add them in edit mode for guided team drills.</p>
+              <p className="form-hint">{isRu ? 'Replay-шагов пока нет. Добавьте их в режиме редактирования для пошаговых командных тренировок.' : 'No replay steps yet. Add them in edit mode for guided team drills.'}</p>
             )}
           </div>
 
           <div className="detail-section">
             <div className="detail-section-header">
-              <h4>Checklist</h4>
-              <span>{visibleTasks.length ? `${completedVisibleCount}/${visibleTasks.length}` : '0/0'} on this step</span>
+              <h4>{isRu ? 'Чеклист' : 'Checklist'}</h4>
+              <span>{visibleTasks.length ? `${completedVisibleCount}/${visibleTasks.length}` : '0/0'} {isRu ? 'на этом шаге' : 'on this step'}</span>
             </div>
 
             {visibleTasks.length ? (
@@ -1729,14 +1819,14 @@ function StratTrainingModeModal({
                           <strong>{task.title}</strong>
                           <RolePresetBadge rolePreset={task.role_preset} />
                         </div>
-                        <p>{task.note || 'No extra note provided.'}</p>
+                        <p>{task.note || (isRu ? 'Дополнительная заметка не добавлена.' : 'No extra note provided.')}</p>
                       </div>
                     </label>
                   )
                 })}
               </div>
             ) : (
-              <p className="form-hint">No checklist items tied to this step yet. Add them while editing the strat.</p>
+              <p className="form-hint">{isRu ? 'К этому шагу пока не привязаны элементы чеклиста. Добавьте их при редактировании стратегии.' : 'No checklist items tied to this step yet. Add them while editing the strat.'}</p>
             )}
           </div>
         </aside>
@@ -1757,12 +1847,14 @@ function InviteModal({
   onSubmit: (userCode: string) => Promise<void>
 }) {
   const [userCode, setUserCode] = useState('')
+  const { locale, t } = useLocale()
+  const isRu = locale === 'ru'
 
   return (
     <Modal
       open={open}
-      title="Invite player"
-      description="Invite a player by their short user code."
+      title={isRu ? 'Пригласить игрока' : 'Invite player'}
+      description={isRu ? 'Пригласите игрока по его короткому user code.' : 'Invite a player by their short user code.'}
       onClose={onClose}
     >
       <form
@@ -1773,16 +1865,16 @@ function InviteModal({
         }}
       >
         <label>
-          User code
+          {isRu ? 'User code' : 'User code'}
           <input value={userCode} onChange={(event) => setUserCode(event.target.value.toUpperCase())} type="text" required />
         </label>
 
         <div className="modal-footer">
           <button type="button" className="ghost-action" onClick={onClose} disabled={loading}>
-            Cancel
+            {t('common.cancel')}
           </button>
           <button type="submit" className="primary-action" disabled={loading}>
-            {loading ? 'Inviting...' : 'Send invite'}
+            {loading ? (isRu ? 'Приглашаем...' : 'Inviting...') : isRu ? 'Отправить приглашение' : 'Send invite'}
           </button>
         </div>
       </form>
@@ -1811,6 +1903,8 @@ function RosterRow({
   const [rolePreset, setRolePreset] = useState<TeamRolePreset | ''>(member.role_preset ?? '')
   const [saving, setSaving] = useState(false)
   const { pushToast } = useToast()
+  const { locale, t } = useLocale()
+  const isRu = locale === 'ru'
 
   useEffect(() => {
     setRole(member.role)
@@ -1823,12 +1917,12 @@ function RosterRow({
 
     try {
       await updateMember(member.id, { role })
-      pushToast({ tone: 'success', title: 'Role updated' })
+      pushToast({ tone: 'success', title: isRu ? 'Роль обновлена' : 'Role updated' })
       await onRefresh()
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not update role',
+        title: isRu ? 'Не удалось обновить роль' : 'Could not update role',
         message: getErrorMessage(error),
       })
     } finally {
@@ -1841,12 +1935,12 @@ function RosterRow({
 
     try {
       await updateMember(member.id, { [field]: value })
-      pushToast({ tone: 'success', title: 'Permissions updated' })
+      pushToast({ tone: 'success', title: isRu ? 'Права обновлены' : 'Permissions updated' })
       await onRefresh()
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not update permissions',
+        title: isRu ? 'Не удалось обновить права' : 'Could not update permissions',
         message: getErrorMessage(error),
       })
     } finally {
@@ -1860,12 +1954,12 @@ function RosterRow({
 
     try {
       await updateMember(member.id, { role_preset: nextPreset || null })
-      pushToast({ tone: 'success', title: 'Preset updated' })
+      pushToast({ tone: 'success', title: isRu ? 'Preset обновлен' : 'Preset updated' })
       await onRefresh()
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not update preset',
+        title: isRu ? 'Не удалось обновить preset' : 'Could not update preset',
         message: getErrorMessage(error),
       })
     } finally {
@@ -1888,7 +1982,7 @@ function RosterRow({
               {member.profile?.username.slice(0, 2).toUpperCase() ?? '??'}
             </div>
           )}
-          <span>{member.profile?.username ?? 'Unknown'}</span>
+          <span>{member.profile?.username ?? (isRu ? 'Неизвестно' : 'Unknown')}</span>
         </div>
       </td>
       <td>#{member.profile?.user_code ?? '------'}</td>
@@ -1917,10 +2011,10 @@ function RosterRow({
               void saveRolePreset(nextPreset)
             }}
           >
-            <option value="">None</option>
+            <option value="">{t('common.none')}</option>
             {TEAM_ROLE_PRESETS.map((preset) => (
               <option key={preset.value} value={preset.value}>
-                {preset.label}
+                {getRolePresetLabel(locale, preset.value)}
               </option>
             ))}
           </select>
@@ -1933,7 +2027,7 @@ function RosterRow({
           <button
             type="button"
             className={`permission-toggle ${member.can_add_lineups ? 'active' : ''}`}
-            title="Can add lineups"
+            title={isRu ? 'Может добавлять лайнапы' : 'Can add lineups'}
             disabled={!canManagePermissions || saving}
             onClick={() => void togglePermission('can_add_lineups', !member.can_add_lineups)}
           >
@@ -1942,7 +2036,7 @@ function RosterRow({
           <button
             type="button"
             className={`permission-toggle ${member.can_add_strats ? 'active' : ''}`}
-            title="Can add strats"
+            title={isRu ? 'Может добавлять стратегии' : 'Can add strats'}
             disabled={!canManagePermissions || saving}
             onClick={() => void togglePermission('can_add_strats', !member.can_add_strats)}
           >
@@ -1953,14 +2047,14 @@ function RosterRow({
       <td>
         {canManagePermissions ? (
           <button type="button" className="danger-link" onClick={() => onConfirmKick(member)}>
-            Kick
+            {isRu ? 'Кикнуть' : 'Kick'}
           </button>
         ) : !isCreator && isSelf ? (
           <button type="button" className="danger-link" onClick={() => onConfirmLeave(member)}>
-            Leave team
+            {isRu ? 'Покинуть команду' : 'Leave team'}
           </button>
         ) : (
-          <span className="muted-label">{member.user_id === team.creator_id ? 'Creator' : 'Member'}</span>
+          <span className="muted-label">{member.user_id === team.creator_id ? (isRu ? 'Создатель' : 'Creator') : isRu ? 'Участник' : 'Member'}</span>
         )}
       </td>
     </tr>
@@ -1974,6 +2068,9 @@ function MapSelector({
   activeMap: string
   onSelect: (mapId: string) => void
 }) {
+  const { locale } = useLocale()
+  const isRu = locale === 'ru'
+
   return (
     <div className="map-pill-grid">
       {MAPS.map((map) => (
@@ -1985,6 +2082,7 @@ function MapSelector({
           style={{ backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.15), rgba(2,6,23,0.84)), url(${map.backgroundSrc})` }}
         >
           <strong>{map.name}</strong>
+          <span className="sr-only">{isRu ? `Выбрать карту ${map.name}` : `Select map ${map.name}`}</span>
         </button>
       ))}
     </div>
@@ -1996,6 +2094,8 @@ export function TeamDashboardPage() {
   const navigate = useNavigate()
   const { profile, refreshProfile } = useAuth()
   const { pushToast } = useToast()
+  const { locale } = useLocale()
+  const isRu = locale === 'ru'
 
   const activeSection = ['roster', 'lineups', 'strats'].includes(section ?? '')
     ? (section as DashboardSection)
@@ -2054,7 +2154,7 @@ export function TeamDashboardPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not load team',
+        title: isRu ? 'Не удалось загрузить команду' : 'Could not load team',
         message: getErrorMessage(error),
       })
     } finally {
@@ -2077,7 +2177,7 @@ export function TeamDashboardPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not load lineups',
+        title: isRu ? 'Не удалось загрузить лайнапы' : 'Could not load lineups',
         message: getErrorMessage(error),
       })
     } finally {
@@ -2093,7 +2193,7 @@ export function TeamDashboardPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not load strats',
+        title: isRu ? 'Не удалось загрузить стратегии' : 'Could not load strats',
         message: getErrorMessage(error),
       })
     } finally {
@@ -2188,11 +2288,11 @@ export function TeamDashboardPage() {
   }
 
   if (loading) {
-    return <section className="page-shell">Loading team dashboard...</section>
+    return <section className="page-shell">{isRu ? 'Загружаем панель команды...' : 'Loading team dashboard...'}</section>
   }
 
   if (!team || !membership) {
-    return <section className="page-shell">Team not found or access denied.</section>
+    return <section className="page-shell">{isRu ? 'Команда не найдена или доступ запрещен.' : 'Team not found or access denied.'}</section>
   }
 
   const submitInvite = async (userCode: string) => {
@@ -2201,12 +2301,12 @@ export function TeamDashboardPage() {
 
     try {
       await createInvite(team.id, userCode)
-      pushToast({ tone: 'success', title: 'Invite sent' })
+      pushToast({ tone: 'success', title: isRu ? 'Приглашение отправлено' : 'Invite sent' })
       setInviteOpen(false)
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not send invite',
+        title: isRu ? 'Не удалось отправить приглашение' : 'Could not send invite',
         message: getErrorMessage(error),
       })
     } finally {
@@ -2255,10 +2355,10 @@ export function TeamDashboardPage() {
 
       if (editingLineup) {
         await updateLineup(editingLineup.id, payload)
-        pushToast({ tone: 'success', title: 'Lineup updated' })
+        pushToast({ tone: 'success', title: isRu ? 'Лайнап обновлен' : 'Lineup updated' })
       } else {
         await createLineup(payload)
-        pushToast({ tone: 'success', title: 'Lineup created' })
+        pushToast({ tone: 'success', title: isRu ? 'Лайнап создан' : 'Lineup created' })
       }
 
       setLineupModalOpen(false)
@@ -2267,7 +2367,7 @@ export function TeamDashboardPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not save lineup',
+        title: isRu ? 'Не удалось сохранить лайнап' : 'Could not save lineup',
         message: getErrorMessage(error),
       })
     } finally {
@@ -2295,15 +2395,15 @@ export function TeamDashboardPage() {
 
       pushToast({
         tone: 'success',
-        title: nextIsFavorite ? 'Saved to favorites' : 'Removed from favorites',
+        title: nextIsFavorite ? (isRu ? 'Сохранено в избранное' : 'Saved to favorites') : isRu ? 'Удалено из избранного' : 'Removed from favorites',
         message: nextIsFavorite
-          ? `"${lineup.name}" is now easier to find during prep.`
-          : `"${lineup.name}" was removed from your saved list.`,
+          ? isRu ? `"${lineup.name}" теперь будет легче найти во время подготовки.` : `"${lineup.name}" is now easier to find during prep.`
+          : isRu ? `"${lineup.name}" удален из вашего списка избранного.` : `"${lineup.name}" was removed from your saved list.`,
       })
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not update favorites',
+        title: isRu ? 'Не удалось обновить избранное' : 'Could not update favorites',
         message: getErrorMessage(error),
       })
     }
@@ -2339,7 +2439,7 @@ export function TeamDashboardPage() {
         } catch (error) {
           versionError = error
         }
-        pushToast({ tone: 'success', title: 'Strat updated' })
+        pushToast({ tone: 'success', title: isRu ? 'Стратегия обновлена' : 'Strat updated' })
       } else {
         const stratId = await createStrat(payload)
         await replaceStratLinkedLineups(stratId, form.linked_lineup_ids)
@@ -2349,14 +2449,16 @@ export function TeamDashboardPage() {
         } catch (error) {
           versionError = error
         }
-        pushToast({ tone: 'success', title: 'Strat created' })
+        pushToast({ tone: 'success', title: isRu ? 'Стратегия создана' : 'Strat created' })
       }
 
       if (versionError && savedStratId) {
         pushToast({
           tone: 'info',
-          title: 'Strat saved without snapshot',
-          message: 'The strat is safe, but version history needs the latest Supabase migration before snapshots can be stored.',
+          title: isRu ? 'Стратегия сохранена без снапшота' : 'Strat saved without snapshot',
+          message: isRu
+            ? 'Стратегия сохранена, но истории версий нужна последняя миграция Supabase, чтобы снапшоты начали записываться.'
+            : 'The strat is safe, but version history needs the latest Supabase migration before snapshots can be stored.',
         })
       }
 
@@ -2366,7 +2468,7 @@ export function TeamDashboardPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not save strat',
+        title: isRu ? 'Не удалось сохранить стратегию' : 'Could not save strat',
         message: getErrorMessage(error),
       })
     } finally {
@@ -2383,7 +2485,7 @@ export function TeamDashboardPage() {
         await removeMember(confirmation.member.id)
         pushToast({
           tone: 'success',
-          title: confirmation.kind === 'kick' ? 'Member removed' : 'You left the team',
+          title: confirmation.kind === 'kick' ? (isRu ? 'Участник удален' : 'Member removed') : isRu ? 'Вы покинули команду' : 'You left the team',
         })
         setConfirmation(null)
         await refreshDashboard()
@@ -2394,7 +2496,7 @@ export function TeamDashboardPage() {
 
       if (confirmation.kind === 'disband-team') {
         await disbandTeam(team.id, profile.id)
-        pushToast({ tone: 'success', title: 'Team disbanded' })
+        pushToast({ tone: 'success', title: isRu ? 'Команда расформирована' : 'Team disbanded' })
         setConfirmation(null)
         await refreshProfile()
         await refreshDashboard()
@@ -2402,7 +2504,7 @@ export function TeamDashboardPage() {
 
       if (confirmation.kind === 'delete-team') {
         await deleteTeam(team.id)
-        pushToast({ tone: 'success', title: 'Team deleted' })
+        pushToast({ tone: 'success', title: isRu ? 'Команда удалена' : 'Team deleted' })
         setConfirmation(null)
         await refreshProfile()
         navigate('/')
@@ -2410,21 +2512,21 @@ export function TeamDashboardPage() {
 
       if (confirmation.kind === 'delete-lineup') {
         await deleteLineup(confirmation.lineup.id)
-        pushToast({ tone: 'success', title: 'Lineup deleted' })
+        pushToast({ tone: 'success', title: isRu ? 'Лайнап удален' : 'Lineup deleted' })
         setConfirmation(null)
         await refreshLineups()
       }
 
       if (confirmation.kind === 'delete-strat') {
         await deleteStrat(confirmation.strat.id)
-        pushToast({ tone: 'success', title: 'Strat deleted' })
+        pushToast({ tone: 'success', title: isRu ? 'Стратегия удалена' : 'Strat deleted' })
         setConfirmation(null)
         await refreshStrats()
       }
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Action failed',
+        title: isRu ? 'Действие не выполнено' : 'Action failed',
         message: getErrorMessage(error),
       })
     } finally {
@@ -2442,10 +2544,10 @@ export function TeamDashboardPage() {
             <div className="team-avatar fallback">{team.name.slice(0, 2).toUpperCase()}</div>
           )}
           <div>
-            <p className="eyebrow">Team Dashboard</p>
+            <p className="eyebrow">{isRu ? 'Панель команды' : 'Team Dashboard'}</p>
             <h1>{team.name}</h1>
             <span className="hero-text">
-              {creator ? 'Creator access' : 'Member access'} · role: {membership.role}
+              {creator ? (isRu ? 'Доступ создателя' : 'Creator access') : isRu ? 'Доступ участника' : 'Member access'} · {isRu ? 'роль' : 'role'}: {membership.role}
             </span>
           </div>
         </div>
@@ -2453,7 +2555,11 @@ export function TeamDashboardPage() {
         <div className="dashboard-tabs">
           {(['roster', 'lineups', 'strats'] as DashboardSection[]).map((tab) => (
             <Link key={tab} to={`/team/${team.id}/${tab}`} className={`dashboard-tab ${activeSection === tab ? 'active' : ''}`}>
-              {tab}
+              {tab === 'roster'
+                ? (isRu ? 'ростер' : 'roster')
+                : tab === 'lineups'
+                  ? (isRu ? 'лайнапы' : 'lineups')
+                  : isRu ? 'страты' : 'strats'}
             </Link>
           ))}
         </div>
@@ -2463,19 +2569,19 @@ export function TeamDashboardPage() {
         <div className="team-hub-panel">
           <div className="map-library-header">
             <div>
-              <p className="eyebrow">Roster</p>
-              <h3>Team members</h3>
+              <p className="eyebrow">{isRu ? 'Ростер' : 'Roster'}</p>
+              <h3>{isRu ? 'Участники команды' : 'Team members'}</h3>
             </div>
             {creator ? (
               <div className="inline-actions">
                 <button type="button" className="ghost-action" onClick={() => setConfirmation({ kind: 'disband-team' })}>
-                  Disband team
+                  {isRu ? 'Расформировать команду' : 'Disband team'}
                 </button>
                 <button type="button" className="danger-action" onClick={() => setConfirmation({ kind: 'delete-team' })}>
-                  Delete team
+                  {isRu ? 'Удалить команду' : 'Delete team'}
                 </button>
                 <button type="button" className="primary-action" onClick={() => setInviteOpen(true)}>
-                  Invite by user code
+                  {isRu ? 'Пригласить по user code' : 'Invite by user code'}
                 </button>
               </div>
             ) : null}
@@ -2485,12 +2591,12 @@ export function TeamDashboardPage() {
             <table className="roster-table">
               <thead>
                 <tr>
-                  <th>Player</th>
-                  <th>User Code</th>
-                  <th>Custom name</th>
-                  <th>Role</th>
-                  <th>Permissions</th>
-                  <th>Actions</th>
+                  <th>{isRu ? 'Игрок' : 'Player'}</th>
+                  <th>{isRu ? 'User Code' : 'User Code'}</th>
+                  <th>{isRu ? 'Custom name' : 'Custom name'}</th>
+                  <th>{isRu ? 'Role' : 'Role'}</th>
+                  <th>{isRu ? 'Права' : 'Permissions'}</th>
+                  <th>{isRu ? 'Действия' : 'Actions'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -2516,8 +2622,8 @@ export function TeamDashboardPage() {
         <div className="team-hub-panel">
           <div className="map-library-header">
             <div>
-              <p className="eyebrow">Lineups</p>
-              <h3>Utility lineups by map</h3>
+              <p className="eyebrow">{isRu ? 'Лайнапы' : 'Lineups'}</p>
+              <h3>{isRu ? 'Лайнапы утилити по картам' : 'Utility lineups by map'}</h3>
             </div>
           </div>
 
@@ -2528,12 +2634,12 @@ export function TeamDashboardPage() {
               className="table-input"
               value={lineupSearch}
               onChange={(event) => setLineupSearch(event.target.value)}
-              placeholder="Search by lineup name"
+              placeholder={isRu ? 'Поиск по названию лайнапа' : 'Search by lineup name'}
             />
             <div className="chip-row">
               {[
-                { value: 'all', label: 'All lineups' },
-                { value: 'favorites', label: 'Favorites only' },
+                { value: 'all', label: isRu ? 'Все лайнапы' : 'All lineups' },
+                { value: 'favorites', label: isRu ? 'Только избранное' : 'Favorites only' },
               ].map((item) => (
                 <button
                   key={item.value}
@@ -2546,15 +2652,15 @@ export function TeamDashboardPage() {
               ))}
             </div>
             <select className="table-input filter-select" value={lineupUtilityFilter} onChange={(event) => setLineupUtilityFilter(event.target.value as 'all' | Lineup['grenade_type'])}>
-              <option value="all">All utility</option>
+              <option value="all">{isRu ? 'Все гранаты' : 'All utility'}</option>
               {(Object.keys(GRENADE_BADGES) as Array<Lineup['grenade_type']>).map((type) => (
                 <option key={type} value={type}>
-                  {GRENADE_BADGES[type].label}
+                  {getGrenadeTypeLabel(locale, type)}
                 </option>
               ))}
             </select>
             <select className="table-input filter-select" value={lineupAuthorFilter} onChange={(event) => setLineupAuthorFilter(event.target.value)}>
-              <option value="all">All authors</option>
+              <option value="all">{isRu ? 'Все авторы' : 'All authors'}</option>
               {lineupAuthors.map((author) => (
                 <option key={author.id} value={author.id}>
                   {author.username}
@@ -2562,7 +2668,7 @@ export function TeamDashboardPage() {
               ))}
             </select>
             <select className="table-input filter-select" value={lineupAnchorFilter} onChange={(event) => setLineupAnchorFilter(event.target.value)}>
-              <option value="all">All areas</option>
+              <option value="all">{isRu ? 'Все зоны' : 'All areas'}</option>
               {selectedMapAnchors.map((anchor) => (
                 <option key={anchor.id} value={anchor.id}>
                   {anchor.label}
@@ -2577,7 +2683,7 @@ export function TeamDashboardPage() {
                   className={`filter-chip ${lineupSideFilter === side ? 'active' : ''}`}
                   onClick={() => setLineupSideFilter(side as 'All' | 'T' | 'CT')}
                 >
-                  {side}
+                  {side === 'All' ? (isRu ? 'Все' : 'All') : side}
                 </button>
               ))}
             </div>
@@ -2585,7 +2691,7 @@ export function TeamDashboardPage() {
 
           {lineupsLoading ? (
             <div className="empty-panel">
-              <strong>Loading lineups...</strong>
+              <strong>{isRu ? 'Загружаем лайнапы...' : 'Loading lineups...'}</strong>
             </div>
           ) : filteredLineups.length ? (
             <div className="content-grid">
@@ -2604,15 +2710,15 @@ export function TeamDashboardPage() {
                       </div>
                       <AnchorPills mapId={selectedMapMeta.id} anchorIds={lineup.anchor_ids} />
                       <h4>{lineup.name}</h4>
-                      <p>{lineup.description || 'No description provided.'}</p>
+                      <p>{lineup.description || (isRu ? 'Описание не добавлено.' : 'No description provided.')}</p>
                       <div className="lineup-throw-icons">
                         <img src={THROW_STANCE_OPTIONS.find((item) => item.value === lineup.throw_stance)?.icon ?? ''} alt="" />
                         <img src={THROW_MOVEMENT_OPTIONS.find((item) => item.value === lineup.throw_movement)?.icon ?? ''} alt="" />
                         <img src={lineup.throw_jump ? '/assets/editor/system/pose_jump.svg' : '/assets/editor/system/pose_still.svg'} alt="" />
                       </div>
                       <div className="content-meta-row">
-                        <span>{lineup.author?.username ?? 'Unknown author'}</span>
-                        <span>{new Date(lineup.created_at).toLocaleDateString()}</span>
+                        <span>{lineup.author?.username ?? (isRu ? 'Неизвестный автор' : 'Unknown author')}</span>
+                        <span>{new Intl.DateTimeFormat(locale === 'ru' ? 'ru-RU' : 'en-US').format(new Date(lineup.created_at))}</span>
                       </div>
                       {(canEdit || creator) ? (
                         <div className="inline-actions">
@@ -2621,7 +2727,7 @@ export function TeamDashboardPage() {
                             className="ghost-action"
                             onClick={() => setPreviewLineup(lineup)}
                           >
-                            View
+                            {isRu ? 'Открыть' : 'View'}
                           </button>
                           {canEdit ? (
                             <button
@@ -2632,7 +2738,7 @@ export function TeamDashboardPage() {
                                 setLineupModalOpen(true)
                               }}
                             >
-                              Edit
+                              {isRu ? 'Редактировать' : 'Edit'}
                             </button>
                           ) : null}
                           {creator ? (
@@ -2641,7 +2747,7 @@ export function TeamDashboardPage() {
                               className="danger-link"
                               onClick={() => setConfirmation({ kind: 'delete-lineup', lineup })}
                             >
-                              Delete
+                              {isRu ? 'Удалить' : 'Delete'}
                             </button>
                           ) : null}
                         </div>
@@ -2652,7 +2758,7 @@ export function TeamDashboardPage() {
                             className="ghost-action"
                             onClick={() => setPreviewLineup(lineup)}
                           >
-                            View
+                            {isRu ? 'Открыть' : 'View'}
                           </button>
                         </div>
                       )}
@@ -2666,16 +2772,16 @@ export function TeamDashboardPage() {
               <strong>
                 {lineups.length
                   ? lineupFavoriteFilter === 'favorites'
-                    ? `No favorite lineups for ${selectedMapMeta.name}`
-                    : 'No lineups match the current filters'
-                  : `No lineups for ${selectedMapMeta.name}`}
+                    ? isRu ? `Нет избранных лайнапов для ${selectedMapMeta.name}` : `No favorite lineups for ${selectedMapMeta.name}`
+                    : isRu ? 'Нет лайнапов под текущие фильтры' : 'No lineups match the current filters'
+                  : isRu ? `Для ${selectedMapMeta.name} пока нет лайнапов` : `No lineups for ${selectedMapMeta.name}`}
               </strong>
               <span>
                 {lineups.length
                   ? lineupFavoriteFilter === 'favorites'
-                    ? 'Save the most important utility setups to favorites and they will appear here.'
-                    : 'Change utility, side, area or author filters, or create a new lineup for this map.'
-                  : 'Create the first lineup for this map when permissions allow it.'}
+                    ? isRu ? 'Сохраняйте самые важные раскидки в избранное, и они появятся здесь.' : 'Save the most important utility setups to favorites and they will appear here.'
+                    : isRu ? 'Измените фильтры по утилите, стороне, зоне или автору, либо создайте новый лайнап для этой карты.' : 'Change utility, side, area or author filters, or create a new lineup for this map.'
+                  : isRu ? 'Создайте первый лайнап для этой карты, когда права это позволяют.' : 'Create the first lineup for this map when permissions allow it.'}
               </span>
             </div>
           )}
@@ -2686,8 +2792,8 @@ export function TeamDashboardPage() {
         <div className="team-hub-panel">
           <div className="map-library-header">
             <div>
-              <p className="eyebrow">Strats</p>
-              <h3>Team strategy board</h3>
+              <p className="eyebrow">{isRu ? 'Стратегии' : 'Strats'}</p>
+              <h3>{isRu ? 'Доска стратегий команды' : 'Team strategy board'}</h3>
             </div>
           </div>
 
@@ -2698,18 +2804,18 @@ export function TeamDashboardPage() {
               className="table-input"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by strat name"
+              placeholder={isRu ? 'Поиск по названию стратегии' : 'Search by strat name'}
             />
             <select className="table-input filter-select" value={utilityFilter} onChange={(event) => setUtilityFilter(event.target.value as 'all' | Lineup['grenade_type'])}>
-              <option value="all">All utility</option>
+              <option value="all">{isRu ? 'Все гранаты' : 'All utility'}</option>
               {(Object.keys(GRENADE_BADGES) as Array<Lineup['grenade_type']>).map((type) => (
                 <option key={type} value={type}>
-                  {GRENADE_BADGES[type].label}
+                  {getGrenadeTypeLabel(locale, type)}
                 </option>
               ))}
             </select>
             <select className="table-input filter-select" value={authorFilter} onChange={(event) => setAuthorFilter(event.target.value)}>
-              <option value="all">All authors</option>
+              <option value="all">{isRu ? 'Все авторы' : 'All authors'}</option>
               {stratAuthors.map((author) => (
                 <option key={author.id} value={author.id}>
                   {author.username}
@@ -2717,7 +2823,7 @@ export function TeamDashboardPage() {
               ))}
             </select>
             <select className="table-input filter-select" value={anchorFilter} onChange={(event) => setAnchorFilter(event.target.value)}>
-              <option value="all">All areas</option>
+              <option value="all">{isRu ? 'Все зоны' : 'All areas'}</option>
               {selectedMapAnchors.map((anchor) => (
                 <option key={anchor.id} value={anchor.id}>
                   {anchor.label}
@@ -2732,7 +2838,7 @@ export function TeamDashboardPage() {
                   className={`filter-chip ${sideFilter === side ? 'active' : ''}`}
                   onClick={() => setSideFilter(side as 'All' | 'T' | 'CT')}
                 >
-                  {side}
+                  {side === 'All' ? (isRu ? 'Все' : 'All') : side}
                 </button>
               ))}
             </div>
@@ -2744,7 +2850,7 @@ export function TeamDashboardPage() {
                   className={`filter-chip ${typeFilter === type ? 'active' : ''}`}
                   onClick={() => setTypeFilter(type as 'all' | 'buyround' | 'force' | 'pistol')}
                 >
-                  {type}
+                  {type === 'all' ? (isRu ? 'Все' : 'all') : getStratTypeLabel(locale, type as 'buyround' | 'force' | 'pistol')}
                 </button>
               ))}
             </div>
@@ -2753,13 +2859,13 @@ export function TeamDashboardPage() {
               className="ghost-action"
               onClick={() => setSortOrder((current) => (current === 'newest' ? 'oldest' : 'newest'))}
             >
-              {sortOrder === 'newest' ? 'Newest first' : 'Oldest first'}
+              {sortOrder === 'newest' ? (isRu ? 'Сначала новые' : 'Newest first') : isRu ? 'Сначала старые' : 'Oldest first'}
             </button>
           </div>
 
           {stratsLoading ? (
             <div className="empty-panel">
-              <strong>Loading strats...</strong>
+              <strong>{isRu ? 'Загружаем стратегии...' : 'Loading strats...'}</strong>
             </div>
           ) : filteredStrats.length ? (
             <div className="content-grid">
@@ -2771,20 +2877,20 @@ export function TeamDashboardPage() {
                       <div className="content-badge-row">
                         <SideBadge side={strat.side} />
                         {strat.types.map((type) => (
-                          <span key={type} className="filter-chip active small">{type}</span>
+                          <span key={type} className="filter-chip active small">{getStratTypeLabel(locale, type as 'buyround' | 'force' | 'pistol')}</span>
                         ))}
                       </div>
                       <AnchorPills mapId={selectedMapMeta.id} anchorIds={strat.anchor_ids} />
                       <h4>{strat.name}</h4>
-                      <p>{strat.note || 'No note provided.'}</p>
+                      <p>{strat.note || (isRu ? 'Заметка не добавлена.' : 'No note provided.')}</p>
                       <div className="content-meta-row">
-                        <span>{strat.linked_lineups?.length ?? 0} linked lineups</span>
-                        <span>{strat.replay_steps.length} replay steps</span>
-                        <span>{strat.training_checklist.length} training tasks</span>
+                        <span>{strat.linked_lineups?.length ?? 0} {isRu ? 'связанных лайнапов' : 'linked lineups'}</span>
+                        <span>{strat.replay_steps.length} {isRu ? 'replay-шагов' : 'replay steps'}</span>
+                        <span>{strat.training_checklist.length} {isRu ? 'тренировочных задач' : 'training tasks'}</span>
                       </div>
                       <div className="content-meta-row">
-                        <span>{strat.author?.username ?? 'Unknown author'}</span>
-                        <span>{new Date(strat.created_at).toLocaleDateString()}</span>
+                        <span>{strat.author?.username ?? (isRu ? 'Неизвестный автор' : 'Unknown author')}</span>
+                        <span>{new Intl.DateTimeFormat(locale === 'ru' ? 'ru-RU' : 'en-US').format(new Date(strat.created_at))}</span>
                       </div>
                       {(canEdit || creator) ? (
                         <div className="inline-actions">
@@ -2793,7 +2899,7 @@ export function TeamDashboardPage() {
                             className="ghost-action"
                             onClick={() => setPreviewStrat(strat)}
                           >
-                            View
+                            {isRu ? 'Открыть' : 'View'}
                           </button>
                           {canEdit ? (
                             <button
@@ -2804,7 +2910,7 @@ export function TeamDashboardPage() {
                                 setStratModalOpen(true)
                               }}
                             >
-                              Edit
+                              {isRu ? 'Редактировать' : 'Edit'}
                             </button>
                           ) : null}
                           {creator ? (
@@ -2813,7 +2919,7 @@ export function TeamDashboardPage() {
                               className="danger-link"
                               onClick={() => setConfirmation({ kind: 'delete-strat', strat })}
                             >
-                              Delete
+                              {isRu ? 'Удалить' : 'Delete'}
                             </button>
                           ) : null}
                         </div>
@@ -2824,7 +2930,7 @@ export function TeamDashboardPage() {
                             className="ghost-action"
                             onClick={() => setPreviewStrat(strat)}
                           >
-                            View
+                            {isRu ? 'Открыть' : 'View'}
                           </button>
                         </div>
                       )}
@@ -2835,11 +2941,11 @@ export function TeamDashboardPage() {
             </div>
           ) : (
             <div className="empty-panel">
-              <strong>{strats.length ? 'No strats match the current filters' : `No strats for ${selectedMapMeta.name}`}</strong>
+              <strong>{strats.length ? (isRu ? 'Нет стратегий под текущие фильтры' : 'No strats match the current filters') : isRu ? `Для ${selectedMapMeta.name} пока нет стратегий` : `No strats for ${selectedMapMeta.name}`}</strong>
               <span>
                 {strats.length
-                  ? 'Change utility, side, area, author or type filters, or create the first strategy for this map.'
-                  : 'Create the first strategy for this map when permissions allow it.'}
+                  ? isRu ? 'Измените фильтры по утилите, стороне, зоне, автору или типу, либо создайте первую стратегию для этой карты.' : 'Change utility, side, area, author or type filters, or create the first strategy for this map.'
+                  : isRu ? 'Создайте первую стратегию для этой карты, когда права это позволяют.' : 'Create the first strategy for this map when permissions allow it.'}
               </span>
             </div>
           )}
@@ -2855,7 +2961,7 @@ export function TeamDashboardPage() {
             setLineupModalOpen(true)
           }}
         >
-          Add line-up
+          {isRu ? 'Добавить лайнап' : 'Add line-up'}
         </button>
       ) : null}
 
@@ -2868,7 +2974,7 @@ export function TeamDashboardPage() {
             setStratModalOpen(true)
           }}
         >
-          Add Strat
+          {isRu ? 'Добавить стратегию' : 'Add Strat'}
         </button>
       ) : null}
 
@@ -2975,40 +3081,40 @@ export function TeamDashboardPage() {
         open={Boolean(confirmation)}
         title={
           confirmation?.kind === 'kick'
-            ? 'Kick player'
+            ? isRu ? 'Кикнуть игрока' : 'Kick player'
             : confirmation?.kind === 'leave'
-              ? 'Leave team'
+              ? isRu ? 'Покинуть команду' : 'Leave team'
               : confirmation?.kind === 'disband-team'
-                ? 'Disband team'
+                ? isRu ? 'Расформировать команду' : 'Disband team'
                 : confirmation?.kind === 'delete-team'
-                  ? 'Delete team'
+                  ? isRu ? 'Удалить команду' : 'Delete team'
               : confirmation?.kind === 'delete-lineup'
-                ? 'Delete lineup'
-                : 'Delete strat'
+                ? isRu ? 'Удалить лайнап' : 'Delete lineup'
+                : isRu ? 'Удалить стратегию' : 'Delete strat'
         }
         description={
           confirmation?.kind === 'kick'
-            ? `Remove ${confirmation.member.profile?.username ?? 'this member'} from the roster?`
+            ? isRu ? `Удалить ${confirmation.member.profile?.username ?? 'этого участника'} из ростера?` : `Remove ${confirmation.member.profile?.username ?? 'this member'} from the roster?`
             : confirmation?.kind === 'leave'
-              ? 'Are you sure you want to leave this team?'
+              ? isRu ? 'Вы уверены, что хотите покинуть эту команду?' : 'Are you sure you want to leave this team?'
               : confirmation?.kind === 'disband-team'
-                ? 'Remove every member except the creator from this team?'
+                ? isRu ? 'Удалить из команды всех участников, кроме создателя?' : 'Remove every member except the creator from this team?'
                 : confirmation?.kind === 'delete-team'
-                  ? 'Delete this team permanently? This removes the roster, line-ups and strats.'
+                  ? isRu ? 'Удалить эту команду навсегда? Это удалит ростер, лайнапы и стратегии.' : 'Delete this team permanently? This removes the roster, line-ups and strats.'
               : confirmation?.kind === 'delete-lineup'
-                ? `Delete lineup "${confirmation.lineup.name}"?`
+                ? isRu ? `Удалить лайнап "${confirmation.lineup.name}"?` : `Delete lineup "${confirmation.lineup.name}"?`
                 : confirmation?.kind === 'delete-strat'
-                  ? `Delete strat "${confirmation.strat.name}"?`
+                  ? isRu ? `Удалить стратегию "${confirmation.strat.name}"?` : `Delete strat "${confirmation.strat.name}"?`
                   : ''
         }
         danger
         loading={confirmationLoading}
         confirmLabel={
           confirmation?.kind === 'delete-team'
-            ? 'Delete team'
+            ? isRu ? 'Удалить команду' : 'Delete team'
             : confirmation?.kind === 'disband-team'
-              ? 'Disband team'
-              : 'Confirm'
+              ? isRu ? 'Расформировать команду' : 'Disband team'
+              : isRu ? 'Подтвердить' : 'Confirm'
         }
         onCancel={() => setConfirmation(null)}
         onConfirm={() => void confirmAction()}

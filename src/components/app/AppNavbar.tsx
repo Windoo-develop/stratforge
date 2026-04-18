@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { useLocale } from '../../hooks/useLocale'
 import { hasAdvancedAccess } from '../../lib/advancedAccess'
 import { useToast } from '../../contexts/ToastContext'
 import { UserAvatar } from '../ui/UserAvatar'
 
 export function AppNavbar() {
   const { profile, user, isAdmin, signOut } = useAuth()
+  const { t } = useLocale()
   const { pushToast } = useToast()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -42,13 +44,13 @@ export function AppNavbar() {
   const handleSignOut = async () => {
     try {
       await signOut()
-      pushToast({ tone: 'success', title: 'Signed out' })
+      pushToast({ tone: 'success', title: t('nav.signedOut') })
       setMobileOpen(false)
       navigate('/')
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not sign out',
+        title: t('nav.signOutFailed'),
         message: error instanceof Error ? error.message : 'Unexpected error',
       })
     }
@@ -63,7 +65,7 @@ export function AppNavbar() {
               <img src="/stratforge-logo.svg" alt="" />
               <div>
                 <span>StratForge</span>
-                <small>Standoff tactics board</small>
+                <small>{t('nav.brandTagline')}</small>
               </div>
             </Link>
           </div>
@@ -73,16 +75,16 @@ export function AppNavbar() {
           {user ? (
             <div className="navbar-links navbar-desktop-links">
               {advancedEnabled ? (
-                <Link to="/dm" className="navbar-link">
-                  DM
-                </Link>
-              ) : null}
+                  <Link to="/dm" className="navbar-link">
+                  {t('nav.dm')}
+                  </Link>
+                ) : null}
               <Link to="/support" className="navbar-link">
-                Support
+                {t('nav.support')}
               </Link>
               {isAdmin ? (
                 <Link to="/admin" className="navbar-link">
-                  Admin
+                  {t('nav.admin')}
                 </Link>
               ) : null}
             </div>
@@ -99,16 +101,16 @@ export function AppNavbar() {
                   </div>
                 </Link>
                 <button type="button" className="ghost-action" onClick={handleSignOut}>
-                  Log out
+                  {t('nav.logOut')}
                 </button>
               </>
             ) : (
               <>
                 <Link to="/register" className="primary-action">
-                  Sign Up
+                  {t('nav.signUp')}
                 </Link>
                 <Link to="/login" className="ghost-action">
-                  Log In
+                  {t('nav.logIn')}
                 </Link>
               </>
             )}
@@ -117,7 +119,7 @@ export function AppNavbar() {
           <button
             type="button"
             className={`navbar-menu-button ${mobileOpen ? 'open' : ''}`}
-            aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-label={mobileOpen ? t('nav.closeMenu') : t('nav.openMenu')}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((current) => !current)}
           >
@@ -133,15 +135,15 @@ export function AppNavbar() {
               <>
                 {advancedEnabled ? (
                   <Link to="/dm" className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
-                    DM
+                    {t('nav.dm')}
                   </Link>
                 ) : null}
                 <Link to="/support" className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
-                  Support
+                  {t('nav.support')}
                 </Link>
                 {isAdmin ? (
                   <Link to="/admin" className="navbar-mobile-link" onClick={() => setMobileOpen(false)}>
-                    Admin
+                    {t('nav.admin')}
                   </Link>
                 ) : null}
                 <Link to="/profile" className="navbar-mobile-profile" onClick={() => setMobileOpen(false)}>
@@ -152,16 +154,16 @@ export function AppNavbar() {
                   </div>
                 </Link>
                 <button type="button" className="ghost-action" onClick={handleSignOut}>
-                  Log out
+                  {t('nav.logOut')}
                 </button>
               </>
             ) : (
               <div className="navbar-mobile-auth">
                 <Link to="/register" className="primary-action" onClick={() => setMobileOpen(false)}>
-                  Sign Up
+                  {t('nav.signUp')}
                 </Link>
                 <Link to="/login" className="ghost-action" onClick={() => setMobileOpen(false)}>
-                  Log In
+                  {t('nav.logIn')}
                 </Link>
               </div>
             )}
@@ -171,7 +173,7 @@ export function AppNavbar() {
 
       <button
         type="button"
-        aria-label="Close navigation menu overlay"
+        aria-label={t('nav.closeOverlay')}
         className={`navbar-mobile-overlay ${mobileOpen ? 'open' : ''}`}
         onClick={() => setMobileOpen(false)}
       />

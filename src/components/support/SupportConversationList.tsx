@@ -1,4 +1,5 @@
 import type { SupportConversation } from '../../types/domain'
+import { useLocale } from '../../hooks/useLocale'
 import { UserAvatar } from '../ui/UserAvatar'
 
 export function SupportConversationList({
@@ -16,6 +17,8 @@ export function SupportConversationList({
   onSelect: (conversation: SupportConversation) => void
   renderMeta?: (conversation: SupportConversation) => string
 }) {
+  const { t, formatDateTime } = useLocale()
+
   return (
     <aside className="support-sidebar">
       <div className="support-sidebar-header">
@@ -50,14 +53,14 @@ export function SupportConversationList({
               <span className="support-conversation-meta">
                 {renderMeta
                   ? renderMeta(conversation)
-                  : new Date(conversation.updated_at).toLocaleString()}
+                  : formatDateTime(conversation.updated_at)}
               </span>
             </button>
           ))}
         </div>
       ) : (
         <div className="empty-panel">
-          <strong>No conversations yet</strong>
+          <strong>{t('support.noConversationsYet')}</strong>
           <span>{emptyMessage}</span>
         </div>
       )}

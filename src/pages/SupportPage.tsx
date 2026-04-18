@@ -3,6 +3,7 @@ import { Modal } from '../components/ui/Modal'
 import { SupportConversationList } from '../components/support/SupportConversationList'
 import { SupportMessageThread } from '../components/support/SupportMessageThread'
 import { useAuth } from '../contexts/AuthContext'
+import { useLocale } from '../hooks/useLocale'
 import { useToast } from '../contexts/ToastContext'
 import { getErrorMessage } from '../lib/errors'
 import {
@@ -15,6 +16,7 @@ import type { SupportConversation, SupportMessage } from '../types/domain'
 
 export function SupportPage() {
   const { profile } = useAuth()
+  const { t, formatDateTime } = useLocale()
   const { pushToast } = useToast()
   const [conversations, setConversations] = useState<SupportConversation[]>([])
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
@@ -49,7 +51,7 @@ export function SupportPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not load support conversations',
+        title: t('support.loadingConversations'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -65,7 +67,7 @@ export function SupportPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not load support messages',
+        title: t('support.loadingMessages'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -99,8 +101,8 @@ export function SupportPage() {
       })
       pushToast({
         tone: 'success',
-        title: 'Support thread created',
-        message: 'Your message is in the queue. You can continue the conversation here.',
+        title: t('support.threadCreated'),
+        message: t('support.threadCreatedHint'),
       })
       setNewTicketOpen(false)
       setNewTicketSubject('')
@@ -109,7 +111,7 @@ export function SupportPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not open support thread',
+        title: t('support.threadCreateFailed'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -136,7 +138,7 @@ export function SupportPage() {
     } catch (error) {
       pushToast({
         tone: 'error',
-        title: 'Could not send support message',
+        title: t('support.sendFailed'),
         message: getErrorMessage(error),
       })
     } finally {
@@ -145,21 +147,21 @@ export function SupportPage() {
   }
 
   if (!profile) {
-    return <section className="page-shell">Loading support workspace...</section>
+    return <section className="page-shell">{t('support.loadingWorkspace')}</section>
   }
 
   return (
     <section className="page-shell support-page">
       <div className="support-page-header team-hub-panel">
         <div>
-          <p className="eyebrow">Support</p>
-          <h1>Support chat</h1>
-          <span className="hero-text">Open a private thread with the StratForge team and keep all support replies in one place.</span>
+          <p className="eyebrow">{t('nav.support')}</p>
+          <h1>{t('support.title')}</h1>
+          <span className="hero-text">{t('support.subtitle')}</span>
         </div>
 
         <div className="inline-actions">
           <button type="button" className="primary-action" onClick={() => setNewTicketOpen(true)}>
-            New support thread
+            {t('support.newThread')}
           </button>
         </div>
       </div>
@@ -168,8 +170,8 @@ export function SupportPage() {
         <SupportConversationList
           conversations={conversations}
           activeConversationId={selectedConversationId}
-          title={loadingConversations ? 'Loading...' : 'Your threads'}
-          emptyMessage="Start your first thread to contact support."
+          title={loadingConversations ? t('common.loading') : t('support.yourThreads')}
+          emptyMessage={t('support.emptyThreads')}
           onSelect={(conversation) => setSelectedConversationId(conversation.id)}
         />
 
@@ -179,12 +181,12 @@ export function SupportPage() {
           currentUserId={profile?.id ?? ''}
           loading={sending || loadingMessages}
           composerValue={composer}
-          composerPlaceholder={selectedConversation?.status === 'closed' ? 'This thread is closed.' : 'Describe the issue, question, or request in detail...'}
+          composerPlaceholder={selectedConversation?.status === 'closed' ? t('support.closedPlaceholder') : t('support.defaultPlaceholder')}
           composerDisabled={!selectedConversation || selectedConversation.status === 'closed'}
           headerActions={
             selectedConversation ? (
               <span className="support-thread-updated">
-                Updated {new Date(selectedConversation.updated_at).toLocaleString()}
+                {t('support.updatedAt', { value: formatDateTime(selectedConversation.updated_at) })}
               </span>
             ) : null
           }
@@ -195,8 +197,8 @@ export function SupportPage() {
 
       <Modal
         open={newTicketOpen}
-        title="Start support thread"
-        description="Create a private conversation with the StratForge team."
+        title={t('support.startThread')}
+        description={t('support.startThreadDescription')}
         onClose={() => setNewTicketOpen(false)}
       >
         <form
@@ -207,33 +209,33 @@ export function SupportPage() {
           }}
         >
           <label>
-            Subject
+            {t('support.subject')}
             <input
               type="text"
               required
               value={newTicketSubject}
               onChange={(event) => setNewTicketSubject(event.target.value)}
-              placeholder="Bug report, account question, feature request..."
+              placeholder={t('support.subjectPlaceholder')}
             />
           </label>
 
           <label>
-            First message
+            {t('support.firstMessage')}
             <textarea
               rows={5}
               required
               value={newTicketBody}
               onChange={(event) => setNewTicketBody(event.target.value)}
-              placeholder="Tell support what happened, what you expected, and any steps to reproduce the issue."
+              placeholder={t('support.firstMessagePlaceholder')}
             />
           </label>
 
           <div className="modal-footer">
             <button type="button" className="ghost-action" onClick={() => setNewTicketOpen(false)} disabled={creatingTicket}>
-              Cancel
+              {t('common.cancel')}
             </button>
             <button type="submit" className="primary-action" disabled={creatingTicket}>
-              {creatingTicket ? 'Opening...' : 'Open thread'}
+              {creatingTicket ? t('support.opening') : t('support.openThread')}
             </button>
           </div>
         </form>
